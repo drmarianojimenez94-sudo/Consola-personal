@@ -52,4 +52,4 @@ install/  install.ps1 / uninstall.ps1
 - Categorías RECIENTES (automática), HOSPITAL y PACIENTES usan carpetas locales `Hospital` y `Pacientes` del perfil de usuario (no se suben al repositorio).
 
 ## Pantalla principal
-La pantalla es un panel de finanzas retro (pixel art, estilo La Horda): ganado/gastado/resultado, cuentas y fondos y pendientes (datos en `%USERPROFILE%\Consultorio`, fuera del repo). Joystick: D-pad/stick mover, A elegir, B volver, Guia = volver al panel desde un juego.
+Pantalla principal con la estetica de La Horda (arte y heroes del repo Fondal-Studios/La-Horda): finanzas del mes, pendientes y un menu de 5 opciones (Juegos por categorias, Cine y musica, Modo consola/Xbox, Escritorio, Cuentas). Datos en `%USERPROFILE%\Consultorio` (fuera del repo). Joystick: D-pad/stick mover, A elegir, B volver, Guia = volver al panel desde un juego.

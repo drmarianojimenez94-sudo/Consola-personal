@@ -17,7 +17,7 @@ $sites = @{
  'whatsapp'='https://web.whatsapp.com'; 'chatgpt'='https://chatgpt.com'; 'gemini'='https://gemini.google.com'
  'drive'='https://drive.google.com'; 'onedrive'='https://onedrive.live.com'; 'photos'='https://photos.google.com'
  'meet'='https://meet.google.com'; 'claudeweb'='https://claude.ai'; 'dolarhoy'='https://dolarhoy.com'; 'coingecko'='https://www.coingecko.com'
- 'cuentas'='http://127.0.0.1:8777/finanzas.html'; 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
+ 'cuentas'='http://127.0.0.1:8777/finanzas.html'; 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'lahorda'='https://fondal-studios.github.io/La-Horda/'; 'vortex'='https://fondal-studios.github.io/Vortex/'; 'mercadolibre'='https://www.mercadolibre.com.ar'
 }
 # busquedas por voz: plataforma -> plantilla de URL (el texto se codifica; solo estos destinos)
 $search = @{
@@ -132,6 +132,9 @@ while($l.IsListening){
       else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
     } elseif($p -like '/steamrun/*'){
       $id=$p.Substring(10); if($id -match '^\d+$'){ Start-Process "steam://rungameid/$id"; Send $ctx '{"ok":true}' } else { $ctx.Response.StatusCode=400; Send $ctx '{"ok":false}' }
+    } elseif($p -like '/art/*'){
+      $ap=Join-Path "$root\art" ($p.Substring(5) -replace '/','\')
+      if($ap -like "$root\art\*" -and $ap -notmatch '\.\.' -and (Test-Path $ap -PathType Leaf)){ $b=[IO.File]::ReadAllBytes($ap); $ctx.Response.ContentType=$(if($ap -match '\.png$'){'image/png'}else{'image/jpeg'}); $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() } else { $ctx.Response.StatusCode=404; Send $ctx '{}' }
     } elseif($p -like '/fonts/*'){
       $fp=Join-Path "$root\fonts" ([IO.Path]::GetFileName($p))
       if(Test-Path $fp){ $b=[IO.File]::ReadAllBytes($fp); $ctx.Response.ContentType='font/woff2'; $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() } else { $ctx.Response.StatusCode=404; Send $ctx 'no' 'text/plain' }

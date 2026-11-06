@@ -26,7 +26,7 @@ public static class NI {
 }
 '@ }catch{} }
  $VK=@{enter=0x0D;esc=0x1B;tab=0x09;backspace=0x08;up=0x26;down=0x28;left=0x25;right=0x27;space=0x20;delete=0x2E;home=0x24;end=0x23;pgup=0x21;pgdn=0x22;f11=0x7A;playpause=0xB3;next=0xB0;prev=0xB1;volup=0xAF;voldown=0xAE;mute=0xAD}
- function IsPrivate($ip){ $ip -match '^(10\.|192\.168\.|127\.|172\.(1[6-9]|2[0-9]|3[01])\.)' }
+ function IsPrivate($ip){ $ip -match '^(10\.|192\.168\.|127\.|172\.(1[6-9]|2[0-9]|3[01])\.|100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.)' }
  try{
   $client.ReceiveTimeout=8000; $client.SendTimeout=8000
   $ip=$client.Client.RemoteEndPoint.Address.ToString(); if(-not (IsPrivate $ip)){ return }

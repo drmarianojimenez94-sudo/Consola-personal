@@ -46,3 +46,7 @@ install/  install.ps1 / uninstall.ps1
 - `pc/rates.json` (se crea desde `rates.example.json`): tu TNA de Mercado Pago (no tiene API p&uacute;blica) y la ciudad del clima.
 - Categor&iacute;as y accesos: arreglo `CATS` en `pc/index.html`.
 - Plataformas de b&uacute;squeda por voz: tabla `$search` en `pc/server.ps1`.
+
+## Ajustes opcionales
+- `pc/data/settings.json`: `{"kioskGpu": true}` activa la aceleración por GPU del panel (por defecto está desactivada para reducir carga y riesgo de cuelgues).
+- Categorías RECIENTES (automática), HOSPITAL y PACIENTES usan carpetas locales `Hospital` y `Pacientes` del perfil de usuario (no se suben al repositorio).

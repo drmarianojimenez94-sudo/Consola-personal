@@ -6,7 +6,7 @@ $apps = @{
   'edge'=$edgeExe; 'terminal'='wt.exe'; 'explorer'='explorer.exe'
   'steam'='C:\Program Files (x86)\Steam\steam.exe'; 'battlenet'='C:\Program Files (x86)\Battle.net\Battle.net Launcher.exe'
   'claude'='shell:AppsFolder\Claude_pzs8sxrjxfjjc!Claude'; 'taskmgr'='taskmgr.exe'; 'bigpicture'='steam://open/bigpicture'
-  'settings'='ms-settings:'; 'pacientes'="$env:USERPROFILE\Pacientes"; 'pcdiag'='C:\ProgramData\PCDiag'; 'hwinfo'='C:\Program Files\HWiNFO64\HWiNFO64.exe'
+  'settings'='ms-settings:'; 'pacientes'="$env:USERPROFILE\Pacientes"; 'hospital'="$env:USERPROFILE\Hospital"; 'hospital-protocolos'="$env:USERPROFILE\Hospital\Protocolos"; 'hospital-guardia'="$env:USERPROFILE\Hospital\Guardias"; 'hospital-plantillas'="$env:USERPROFILE\Hospital\Plantillas"; 'hospital-remoto'="$env:USERPROFILE\Hospital\LEEME_acceso_remoto.txt"; 'pcdiag'='C:\ProgramData\PCDiag'; 'hwinfo'='C:\Program Files\HWiNFO64\HWiNFO64.exe'
 }
 $sites = @{
  'netflix'='https://www.netflix.com'; 'disney'='https://www.disneyplus.com'; 'prime'='https://www.primevideo.com'
@@ -64,8 +64,11 @@ function OpenApp($app,$title){
   $h=$null; for($i=0;$i -lt 30 -and -not $h;$i++){ Start-Sleep -Milliseconds 400; $h=(Get-Process | ? { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -like "*$title*" -and $_.Name -notin 'claude','msedge' } | Select -First 1).MainWindowHandle }
   if($h){ [W.U]::keybd_event(0x12,0,0,[UIntPtr]::Zero); [W.U]::keybd_event(0x12,0,2,[UIntPtr]::Zero); [void][W.U]::ShowWindow($h,3); [void][W.U]::SetForegroundWindow($h) }
 }
+function Spawn($mode,$arg,$title=''){ Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"`"$root\front.ps1`"",$mode,"`"$arg`"","`"$title`"" }
+function KioskGpuArg { try{ $c=Get-Content "$data\settings.json" -Raw -ErrorAction Stop | ConvertFrom-Json; if($c.kioskGpu -eq $true){ return '' } }catch{}; return ' --disable-gpu' }
+$script:dict=$null
 function KioskWin { Get-Process msedge -ErrorAction SilentlyContinue | ? { $_.MainWindowTitle -like 'NEON CONSOLE*' } | Select -First 1 }
-function KioskStart { Start-Process $edgeExe -ArgumentList "--kiosk http://127.0.0.1:8777 --edge-kiosk-type=fullscreen --no-first-run --autoplay-policy=no-user-gesture-required --user-data-dir=`"$env:LOCALAPPDATA\NeonPanel\edge-profile`"" }
+function KioskStart { Start-Process $edgeExe -ArgumentList "--kiosk http://127.0.0.1:8777 --edge-kiosk-type=fullscreen --no-first-run --autoplay-policy=no-user-gesture-required$(KioskGpuArg) --user-data-dir=`"$env:LOCALAPPDATA\NeonPanel\edge-profile`"" }
 function ToConsole($bigpicture){ MinimizeOthers; $k=KioskWin; if($k){ [W.U]::ShowWindow($k.MainWindowHandle,9)|Out-Null; [W.U]::SetForegroundWindow($k.MainWindowHandle)|Out-Null } else { KioskStart }; if($bigpicture){ Start-Process 'steam://open/bigpicture' } }
 function ToDesktop { $k=KioskWin; if($k){ [W.U]::ShowWindow($k.MainWindowHandle,6)|Out-Null } }
 $script:ipv=$null; $script:ipAt=[datetime]::MinValue
@@ -93,16 +96,18 @@ while($l.IsListening){
     } elseif($p -eq '/info'){ Send $ctx (@{ip=(GetIp);port=8443;pin=(Get-Content $pinFile -Raw).Trim()}|ConvertTo-Json -Compress)
     } elseif($p -eq '/inbox/push'){ $t=$ctx.Request.QueryString['t']; if($t -and $t.Length -lt 300 -and $inbox.Count -lt 20){ [void]$inbox.Add($t) }; Send $ctx '{"ok":true}'
     } elseif($p -eq '/inbox/pop'){ $o=@($inbox); $inbox.Clear(); Send $ctx (ConvertTo-Json @($o) -Compress)
+    } elseif($p -eq '/dictado/new'){ $d="$env:USERPROFILE\Pacientes\Dictados"; New-Item -ItemType Directory -Force $d | Out-Null; $script:dict="$d\dictado_"+(Get-Date -f 'yyyyMMdd_HHmm')+'.txt'; Send $ctx '{"ok":true}'
+    } elseif($p -eq '/dictado/append'){ $t=$ctx.Request.QueryString['t']; if($script:dict -and $t -and $t.Length -lt 800 -and ((Get-Item $script:dict -ErrorAction SilentlyContinue).Length -lt 200KB)){ Add-Content $script:dict $t -Encoding UTF8 }; Send $ctx '{"ok":true}'
     } elseif($p -like '/open/*'){
       $k=$p.Substring(6)
       if($k -eq 'steamdl'){ Start-Process 'steam://nav/downloads'; Send $ctx '{"ok":true}' }
       elseif($k -eq 'steamlib'){ Start-Process 'steam://open/games'; Send $ctx '{"ok":true}' }
-      elseif((FindStoreApp $k)){ $ap=FindStoreApp $k; Send $ctx '{"ok":true}'; OpenApp $ap $storeApps[$k] }
-      elseif($sites.ContainsKey($k)){ Send $ctx '{"ok":true}'; OpenFront @("--app=$($sites[$k])","--start-fullscreen") }
+      elseif((FindStoreApp $k)){ $ap=FindStoreApp $k; Send $ctx '{"ok":true}'; Spawn 'app' $ap.AppID $storeApps[$k] }
+      elseif($sites.ContainsKey($k)){ Send $ctx '{"ok":true}'; Spawn 'web' $sites[$k] }
       else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
     } elseif($p -like '/search/*'){
       $k=$p.Substring(8); $q=$ctx.Request.QueryString['q']
-      if($search.ContainsKey($k) -and $q -and $q.Length -lt 200){ $u=[string]::Format($search[$k],[uri]::EscapeDataString($q)); Send $ctx '{"ok":true}'; OpenFront @("--app=$u","--start-fullscreen") }
+      if($search.ContainsKey($k) -and $q -and $q.Length -lt 200){ $u=[string]::Format($search[$k],[uri]::EscapeDataString($q)); Send $ctx '{"ok":true}'; Spawn 'web' $u }
       else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
     } elseif($p -like '/steamrun/*'){
       $id=$p.Substring(10); if($id -match '^\d+$'){ Start-Process "steam://rungameid/$id"; Send $ctx '{"ok":true}' } else { $ctx.Response.StatusCode=400; Send $ctx '{"ok":false}' }
@@ -115,7 +120,7 @@ while($l.IsListening){
     } elseif($p -like '/launch/*'){
       $k=$p.Substring(8)
       if($k -eq 'nuevahc'){ NewHC; Send $ctx '{"ok":true}' }
-      elseif($apps.ContainsKey($k)){ Send $ctx '{"ok":true}'; if($k -in 'explorer','terminal','taskmgr','settings','hwinfo','steam','battlenet','pacientes'){ LaunchFront $apps[$k] } else { Start-Process $apps[$k] } } else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
+      elseif($apps.ContainsKey($k)){ Send $ctx '{"ok":true}'; if($k -in 'explorer','terminal','taskmgr','settings','hwinfo','steam','battlenet','pacientes'){ Spawn 'launch' $apps[$k] } else { Start-Process $apps[$k] } } else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
     } elseif($p -eq '/' -or $p -eq '/index.html'){ Send $ctx ([IO.File]::ReadAllText("$root\index.html",[Text.Encoding]::UTF8)) 'text/html; charset=utf-8'
     } else { $ctx.Response.StatusCode=404; Send $ctx 'no' 'text/plain' }
   } catch { try{ $ctx.Response.Abort() }catch{} }

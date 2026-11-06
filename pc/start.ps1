@@ -6,6 +6,7 @@ $pc = $PSScriptRoot
 $mx = New-Object Threading.Mutex($false,'Global\NeonPanelLauncher'); if(-not $mx.WaitOne(0)){ exit }
 $edge = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
 $log = "$pc\data\start.log"; New-Item -ItemType Directory -Force "$pc\data" | Out-Null
+function GpuArg { try{ $c=Get-Content "$pc\data\settings.json" -Raw -ErrorAction Stop | ConvertFrom-Json; if($c.kioskGpu -eq $true){ return '' } }catch{}; return ' --disable-gpu' }
 function Log($m){ try{ Add-Content $log "$(Get-Date -f s) $m" }catch{} }
 function Alive($file){ [bool](Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" | ? { $_.CommandLine -like "*\pc\$file*" -and $_.CommandLine -notlike '*start.ps1*' }) }
 function Ensure($file){ if(-not (Alive $file)){ Log "iniciando $file"; Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"$pc\$file" } }
@@ -15,6 +16,7 @@ while($true){
   if(-not $opened){
     try{ Invoke-WebRequest http://127.0.0.1:8777/stats -UseBasicParsing -TimeoutSec 2 | Out-Null
       $kargs = '--kiosk http://127.0.0.1:8777 --edge-kiosk-type=fullscreen --no-first-run --autoplay-policy=no-user-gesture-required --user-data-dir="' + $env:LOCALAPPDATA + '\NeonPanel\edge-profile"'
+      $kargs += (GpuArg)
       Start-Process $edge -ArgumentList $kargs
       $opened = $true; Log 'consola abierta' }catch{}
   }

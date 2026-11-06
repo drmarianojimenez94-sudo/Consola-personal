@@ -41,7 +41,7 @@ h2{margin:0 0 1.4vh;font-size:1.6vh;letter-spacing:.32em;color:var(--m);font-wei
 .stage{position:fixed;left:50%;top:50%;width:var(--S);height:var(--S);margin:calc(var(--S) / -2) 0 0 calc(var(--S) / -2);margin-top:calc(var(--S) / -2 - 2vh);z-index:4;transform:translate(var(--tx,0vh),var(--ty,0vh));transition:transform 1s cubic-bezier(.2,.8,.2,1)}
 .star{position:absolute;transform:translate(-50%,-50%) scale(0);display:grid;place-items:center;z-index:3;pointer-events:none;animation:sp .55s cubic-bezier(.2,1.4,.3,1) forwards}
 .star b{width:4.2vh;height:4.2vh;border-radius:50%;display:grid;place-items:center;font-size:2vh;color:var(--sc);border:1.5px solid var(--sc);background:radial-gradient(circle,color-mix(in srgb,var(--sc) 45%,#0b1030),#080b20 75%);box-shadow:0 0 14px var(--sc)}
-.star em{position:absolute;top:100%;margin-top:.4vh;font-style:normal;font-size:1.2vh;letter-spacing:.1em;white-space:nowrap;color:#eaf6ff;text-shadow:0 0 6px #000}
+.star em{position:absolute;top:100%;margin-top:.4vh;font-style:normal;font-size:1.6vh;letter-spacing:.1em;white-space:nowrap;color:#eaf6ff;text-shadow:0 0 6px #000}
 @keyframes sp{to{transform:translate(-50%,-50%) scale(1)}}@keyframes tw{50%{filter:brightness(1.5)}}
 .wx{display:flex;align-items:baseline;gap:1vw;margin-bottom:.8vh}.wx b{font-size:5vh;font-weight:300}.wx span{font-size:1.8vh;opacity:.85;line-height:1.3}
 .node.free{transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .4s,box-shadow .25s,border-color .25s}
@@ -70,8 +70,8 @@ h2{margin:0 0 1.4vh;font-size:1.6vh;letter-spacing:.32em;color:var(--m);font-wei
 .node .ic{font-size:3.2vh;line-height:1;color:var(--sc,#00f5e0);text-shadow:0 0 14px var(--sc,#00f5e0);font-weight:700}
 .node .lb{font-size:1.1vh;letter-spacing:.13em;margin-top:.5vh;opacity:.92}
 .node .cnt{position:absolute;top:10%;right:14%;font-size:1vh;background:var(--sc);color:#04050d;border-radius:1vh;padding:0 .35vw;font-weight:700}
-.n1{width:calc(var(--S)*.13);height:calc(var(--S)*.13)}.n1 .ic{font-size:3.6vh}.n1 .lb{font-size:1.3vh;white-space:normal;line-height:1.1;max-width:88%}
-.n2{width:calc(var(--S)*.135);height:calc(var(--S)*.135)}.n2 .ic{font-size:3.8vh}.n2 .lb{font-size:1.5vh;white-space:normal;line-height:1.1;max-width:90%}
+.n1{width:calc(var(--S)*.14);height:calc(var(--S)*.14)}.n1 .ic{font-size:3.6vh}.n1 .lb{font-size:1.6vh;white-space:normal;line-height:1.1;max-width:88%}
+.n2{width:calc(var(--S)*.15);height:calc(var(--S)*.15)}.n2 .ic{font-size:3.8vh}.n2 .lb{font-size:1.85vh;white-space:normal;line-height:1.1;max-width:90%}
 .node .lb{font-weight:600;color:#eef6ff;letter-spacing:.05em}
 .node.in:not(.sel){opacity:.82;filter:saturate(.85)}
 .node::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,#ffffff40 50%,transparent 65%);transform:translateX(-130%);z-index:-1}
@@ -84,7 +84,7 @@ h2{margin:0 0 1.4vh;font-size:1.6vh;letter-spacing:.32em;color:var(--m);font-wei
 .cap{position:fixed;left:50%;bottom:2vh;transform:translateX(-50%);z-index:5;text-align:center;min-width:38vw;max-width:50vw}
 #capT{font-size:3.2vh;font-weight:600;letter-spacing:.14em;white-space:nowrap}
 #capT small{display:inline-block;font-size:1.5vh;padding:.3vh .7vw;border:1px solid var(--line);border-radius:2vh;margin-left:.8vw;vertical-align:middle;color:var(--c)}
-#capD{font-size:1.9vh;opacity:.85;margin-top:.5vh;letter-spacing:.06em}
+#capD{font-size:2.3vh;opacity:.85;margin-top:.5vh;letter-spacing:.06em}
 #heard{position:fixed;left:50%;top:9.5vh;transform:translateX(-50%);z-index:7;font-size:2vh;padding:1vh 2vw;border-radius:3vh;border:1px solid #ff2bb4aa;background:#1a0620dd;color:#fff;opacity:0;transition:opacity .3s;letter-spacing:.06em}
 #heard.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
@@ -138,6 +138,7 @@ const go=k=>api('/launch/'+k),mode=m=>api('/mode/'+m),site=k=>api('/open/'+k);
 // ================= CATALOGO: INICIO -> categorias -> elementos =================
 const L=(ic,lb,d,f,sc,alias=[])=>({ic,lb,d,f,sc,alias});
 const CATS=[
+ {id:'rec',ic:'★',lb:'RECIENTES',sc:'#ffd24d',d:'Lo ultimo que abriste',get items(){return recentItems()}},
  {id:'juegos',ic:'◈',lb:'JUEGOS',sc:'#ff2bb4',d:'Tus juegos instalados',get items(){return[
   ...GAMES.slice(0,10).map(g=>L('◈',g.name.toUpperCase().slice(0,22),'Jugar '+g.name+' ('+g.gb+' GB)',()=>api('/steamrun/'+g.id),'#8a6bff',[norm(g.name)]))]}},
  {id:'plat',ic:'▣',lb:'PLATAFORMAS',sc:'#66c0f4',d:'Steam, Battle.net, biblioteca y descargas',items:[
@@ -174,13 +175,24 @@ const CATS=[
   L('➤','FREE BIRDS','Repositorio de Free Birds',()=>site('gh-freebird'),'#4cc2ff',['free birds','free bird','freebird']),
   L('◐','VIRTUAL PADEL','Repositorio de Virtual Padel',()=>site('gh-padel'),'#4dff9d',['virtual padel','padel']),
   L('⌘','FONDAL STUDIOS','Organización en GitHub',()=>site('gh-org'),'#ffd24d',['fondal','fondal studios','github'])]},
+ {id:'hosp',ic:'⚕',lb:'HOSPITAL',sc:'#4cc2ff',d:'Material del hospital para consultar de forma remota',items:[
+  L('▤','CARPETA','Documentos del hospital',()=>go('hospital'),'#4cc2ff',['hospital','carpeta del hospital']),
+  L('⚕','PROTOCOLOS','Protocolos y guias',()=>go('hospital-protocolos'),'#4dff9d',['protocolos']),
+  L('☾','GUARDIAS','Guardias y turnos',()=>go('hospital-guardia'),'#8a6bff',['guardias','guardia']),
+  L('▦','PLANTILLAS','Plantillas de documentos',()=>go('hospital-plantillas'),'#ffd24d',['plantillas']),
+  L('☁','ACCESO REMOTO','Guia para entrar a esta PC desde el hospital',()=>go('hospital-remoto'),'#ff9d6b',['acceso remoto'])]},
  {id:'pac',ic:'✚',lb:'PACIENTES',sc:'#4dff9d',d:'Archivo de historias clínicas (carpeta local)',items:[
-  L('▤','ARCHIVO','Abrir la carpeta de pacientes',()=>go('pacientes'),'#4dff9d',['pacientes','archivo de pacientes','historias clinicas']),
-  L('✚','NUEVA HISTORIA','Crear una historia clínica nueva desde la plantilla',()=>go('nuevahc'),'#ff2bb4',['nueva historia','historia clinica nueva'])]},
+  Object.assign(L('▤','ARCHIVO','Abrir la carpeta de pacientes (pide confirmar)',()=>go('pacientes'),'#4dff9d',['pacientes','archivo de pacientes','historias clinicas']),{confirm:true}),
+  L('✚','NUEVA HISTORIA','Crear una historia clínica nueva desde la plantilla',()=>go('nuevahc'),'#ff2bb4',['nueva historia','historia clinica nueva']),
+  L('✎','DICTAR','Dictado de historia clinica: queda como texto en Pacientes\Dictados para estructurarlo despues con IA',()=>toggleDictation(),'#ff9d6b',['dictar','dictado','dictar historia'])]},
  {id:'sis',ic:'⚙',lb:'SISTEMA',sc:'#00f5e0',d:'Archivos, terminal, web, ajustes',items:[
   L('▤','ARCHIVOS','Explorador de archivos',()=>go('explorer'),'#ffd24d',['archivos']),L('>_','TERMINAL','Terminal de Windows',()=>go('terminal'),'#9cff57',['terminal']),
   L('◎','WEB','Navegador Edge',()=>go('edge'),'#4cc2ff',['web','navegador','edge']),L('⚙','AJUSTES','Configuración de Windows',()=>go('settings'),'#c0c8ff',['ajustes','configuracion','configuración'])]}
 ];
+function recentItems(){let r=[];try{r=JSON.parse(localStorage.getItem('recent')||'[]')}catch(e){}
+ const all=CATS.filter(c=>c.id!=='rec').flatMap(c=>{let it=[];try{it=c.items}catch(e){}return it});
+ return r.map(lb=>all.find(i=>i.lb===lb)).filter(Boolean).slice(0,8)}
+function rememberRecent(n){if(!n||n.cat||!n.lb)return;let r=[];try{r=JSON.parse(localStorage.getItem('recent')||'[]')}catch(e){}r=[n.lb].concat(r.filter(x=>x!==n.lb)).slice(0,8);try{localStorage.setItem('recent',JSON.stringify(r))}catch(e){}}
 // nodos fijos del anillo interior
 const FIX={
  games:L('◉','CONSOLA STEAM','Abre Steam Big Picture (consola de juegos de Steam)',()=>mode('games'),'#ff2bb4',['modo consola','consola','consola steam','big picture']),
@@ -194,7 +206,7 @@ function place(list,ring,r,start){list.forEach((n,i)=>{n.ring=ring;n.r=r;n.a=sta
 function build(){N=[];const home=level==='home';
  const ring1=home?[{...FIX.voz,a:270},{...FIX.desk,a:90}]:[{...FIX.voz,a:270},{...FIX.back,a:90}];
  ring1.forEach(n=>{n.ring=1;n.r=.205;N.push(n)});
- const items=home?CATS.map(c=>({ic:c.ic,lb:c.lb,d:c.d,sc:c.sc,cnt:c.items.length,f:()=>openLevel(c.id),alias:[c.lb.toLowerCase(),c.id],cat:true})):CATS.find(c=>c.id===level).items.map(x=>({...x}));
+ const items=home?CATS.filter(c=>{try{return (c.id==='juegos'&&!GAMESLOADED)||c.items.length>0}catch(e){return true}}).map(c=>({ic:c.ic,lb:c.lb,d:c.d,sc:c.sc,cnt:c.items.length,f:()=>openLevel(c.id),alias:[c.lb.toLowerCase(),c.id],cat:true})):CATS.find(c=>c.id===level).items.map(x=>({...x}));
  place(items,2,.40,-90+(items.length>=8?22.5:0));items.forEach(n=>N.push(n));
  // anillos fijos cuando hay pocos elementos: separar mas
  }
@@ -203,7 +215,7 @@ function clearBranch(){clearTimeout(brT);$('branch').innerHTML='';stage.querySel
 function render(selIdx){clearBranch();stage.querySelectorAll('.node,.beam').forEach(e=>e.remove());build();
  N.forEach((n,i)=>{const b=document.createElement('button');b.className='node n'+n.ring;b.style.setProperty('--sc',n.sc);b.style.left=orig[0]+'%';b.style.top=orig[1]+'%';{const rd=n.a*Math.PI/180;n.px=50+Math.cos(rd)*n.r*100;n.py=50+Math.sin(rd)*n.r*100}
   b.innerHTML='<div class="ic">'+n.ic+'</div><div class="lb">'+n.lb+'</div>'+(n.cnt?'<span class="cnt">'+n.cnt+'</span>':'');
-  b.onclick=()=>{n.f()};b.onmouseenter=()=>{sel=i;hl()};n.el=b;stage.appendChild(b);
+  b.onclick=()=>{if(n.confirm&&!n._armed){n._armed=true;say('Toca ENTRAR otra vez para abrir: '+n.lb,4500);setTimeout(()=>{n._armed=false},5000);return}rememberRecent(n);n.f()};b.onmouseenter=()=>{sel=i;hl()};n.el=b;stage.appendChild(b);
   const bm=document.createElement('div');bm.className='beam';n.beam=bm;
   setTimeout(()=>{const rad=n.a*Math.PI/180;b.style.transitionDelay=(i*28)+'ms,'+(i*28)+'ms,'+(i*28)+'ms,'+(i*28)+'ms';b.style.left=50+Math.cos(rad)*n.r*100+'%';b.style.top=50+Math.sin(rad)*n.r*100+'%';b.classList.add('in');setTimeout(()=>b.style.transitionDelay='0ms',900);setTimeout(()=>b.classList.add('free'),1100+i*30)},40)});
  sel=selIdx!=null?selIdx:N.findIndex(n=>n.ring===2);hl();
@@ -251,7 +263,7 @@ function listen(){if(!SR){say('Este navegador no soporta reconocimiento de voz')
  rec.onerror=e=>{say(e.error==='not-allowed'?'Micrófono bloqueado: permití el acceso en Edge':e.error==='no-speech'?'No te escuché':'Error de voz: '+e.error)};
  rec.onresult=e=>{const r=e.results[e.results.length-1];const t=r[0].transcript;say('“'+t+'”',5000);if(r.isFinal)command(t)};
  try{rec.start()}catch(e){}}
-let GAMES=[];async function loadGames(){try{const g=await (await fetch('/games')).json();if(JSON.stringify(g)!==JSON.stringify(GAMES)){GAMES=g;if(typeof level!=='undefined'&&level==='juegos'&&typeof render==='function')render(sel)}}catch(e){}}loadGames();setInterval(loadGames,120000);
+let GAMES=[],GAMESLOADED=false;async function loadGames(){try{const g=await (await fetch('/games')).json();GAMESLOADED=true;if(JSON.stringify(g)!==JSON.stringify(GAMES)){GAMES=g;if(typeof level!=='undefined'&&(level==='juegos'||level==='home')&&typeof render==='function')render(sel)}}catch(e){}}loadGames();setInterval(loadGames,120000);
 const PLAT={youtube:['youtube','you tube','video','videos'],ytmusic:['youtube music','yt music','musica','cancion'],netflix:['netflix'],disney:['disney','disney plus'],prime:['prime video','prime','amazon'],max:['max','hbo'],spotify:['spotify'],twitch:['twitch'],paramount:['paramount'],crunchyroll:['crunchyroll','anime'],google:['google']};
 const FILL=/\b(reproduci|reproducime|reproducir|abrime|abri|abrir|poneme|pone|ponme|poner|quiero ver|quiero escuchar|mostrame|mostra|buscame|busca|buscar|el|la|los|las|un|una|de|del|en|por|favor|video|videos|pelicula|serie|cancion|musica|sobre|a|me)\b/g;
 async function inbox(){try{const a=await (await fetch('/inbox/pop')).json();a.forEach(t=>{lastIn=performance.now();if(t.indexOf('key:')===0){const f={left:()=>mv(-1,0),right:()=>mv(1,0),up:()=>mv(0,-1),down:()=>mv(0,1),ok:()=>press(),back:()=>back(),x:()=>listen(),y:()=>mode('desktop'),start:()=>mode('games'),b:()=>back(),lb:()=>mv(-1,0),rb:()=>mv(1,0)}[t.slice(4)];if(f)f()}else{say('\u{1F4F1} '+t,4500);command(t)}})}catch(e){}}
@@ -259,7 +271,18 @@ setInterval(inbox,800);
 (async()=>{try{const i=await (await fetch('/info')).json();if(i.ip){window.__pin=i.pin;window.__tel=i.ip+':'+i.port;$('ph').textContent='TEL: '+window.__tel+'  PIN ******  (toca aqui o di vincular telefono)'}}catch(e){}})();
 function revealPin(){if(!window.__pin)return;$('ph').textContent='TEL: '+window.__tel+'  PIN '+window.__pin;clearTimeout(revealPin.t);revealPin.t=setTimeout(()=>{$('ph').textContent='TEL: '+window.__tel+'  PIN ******  (toca aqui o di vincular telefono)'},30000)}
 document.addEventListener('click',e=>{if(e.target.closest('#ph'))revealPin()});
+let dict=false,drec=null;
+function startDictation(){if(!SR){say('Sin soporte de voz');return}
+ api('/dictado/new');dict=true;say('Dictando... di "terminar dictado" para cerrar',8000);
+ drec=new SR();drec.lang='es-AR';drec.continuous=true;drec.interimResults=false;
+ drec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal){const t=e.results[i][0].transcript.trim();if(/terminar dictado|fin del dictado/.test(norm(t))){stopDictation();return}api('/dictado/append?t='+encodeURIComponent(t));say('✎ '+t,3000)}}};
+ drec.onend=()=>{if(dict){try{drec.start()}catch(e){}}};
+ drec.onerror=e=>{if(e.error==='not-allowed'){dict=false;say('Microfono bloqueado: permitilo en Edge')}};
+ try{drec.start()}catch(e){}}
+function stopDictation(){dict=false;try{drec.stop()}catch(e){}say('Dictado guardado en Pacientes\Dictados',4000)}
+function toggleDictation(){dict?stopDictation():startDictation()}
 function command(raw){const t=norm(raw);
+ if(/(dictar historia|iniciar dictado|empezar dictado)/.test(t)){startDictation();return}
  if(/vincular (el )?(telefono|celular)/.test(t)){revealPin();return}
  if(/(^| )(volver|atras|inicio)( |$)/.test(t)){back();return}
  if(/modo consola|modo juegos|big picture/.test(t)){mode('games');return}

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Cuentas y pendientes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--c:#00f5e0;--m:#ff2bb4;--line:rgba(120,255,240,.22)}
+*{box-sizing:border-box}
+body{margin:0;background:#04050d;color:#d8fffb;font:1.9vh/1.35 "Segoe UI",system-ui,sans-serif;padding:2.5vh 2.5vw 6vh}
+h1{font-size:3vh;letter-spacing:.3em;margin:0 0 1.2vh}h1 span{color:var(--c)}
+h2{font-size:1.5vh;letter-spacing:.3em;color:var(--m);margin:2.4vh 0 1vh}
+button,input,select{font:inherit;color:#eaffff;background:#0b1030;border:1px solid var(--line);border-radius:1vh;padding:.7vh .7vw}
+button{cursor:pointer;border-color:var(--c)}button.d{border-color:#ff5d7a;color:#ff5d7a;padding:.2vh .6vw}
+.kp{display:grid;grid-template-columns:repeat(5,1fr);gap:1vw}
+.k{border:1px solid var(--line);background:#0a0e22;border-radius:1.6vh;padding:1.4vh 1vw}.k small{display:block;font-size:1.3vh;letter-spacing:.2em;opacity:.7}.k b{font-size:3.2vh;font-weight:500}
+.up{color:#4dff9d}.dn{color:#ff5d7a}.dim{opacity:.65}
+table{border-collapse:collapse;width:100%}th{font-size:1.3vh;letter-spacing:.15em;color:var(--m);text-align:left;padding:.4vh .3vw}
+td{padding:.25vh .2vw;border-top:1px solid #ffffff10}td input,td select{width:100%;background:transparent;border-color:#ffffff14}
+.row{display:flex;gap:.6vw;flex-wrap:wrap;margin-top:1vh}.row input,.row select{width:auto}
+#msg{color:#4dff9d;margin-left:1vw}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:2vw}
+@media(max-width:900px){.kp{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
+</style></head><body>
+<h1>CUENTAS Y <span>PENDIENTES</span> <span id="msg"></span></h1>
+<div class="row" style="margin:0 0 1vh"><label class="dim">Mes&nbsp;</label><input type="month" id="mes"><button id="csv">Exportar a Excel (CSV)</button><button id="mp">Abrir Mercado Pago</button></div>
+<div class="kp"><div class="k"><small>INGRESOS DEL MES</small><b id="kI" class="up">-</b></div><div class="k"><small>GASTOS DEL MES</small><b id="kG" class="dn">-</b></div><div class="k"><small>RESULTADO</small><b id="kR">-</b></div><div class="k"><small>DISPONIBLE (SALDOS)</small><b id="kS">-</b></div><div class="k"><small>A COBRAR / A PAGAR</small><b id="kP">-</b></div></div>
+<div class="two"><div>
+<h2>SALDOS (cuentas y fondos)</h2><table><thead><tr><th>NOMBRE</th><th>MONTO</th><th>ACTUALIZADO</th><th></th></tr></thead><tbody id="sa"></tbody></table><div class="row"><button id="addS">+ Cuenta / fondo</button></div>
+</div><div>
+<h2>PENDIENTES (tareas, cobros, pagos)</h2><table><thead><tr><th></th><th>QUÉ</th><th>TIPO</th><th>MONTO</th><th>VENCE</th><th></th></tr></thead><tbody id="ta"></tbody></table><div class="row"><button id="addT">+ Pendiente</button></div>
+</div></div>
+<h2>MOVIMIENTOS DEL MES</h2><table><thead><tr><th>FECHA</th><th>TIPO</th><th>CONCEPTO</th><th>CATEGORÍA</th><th>MONTO</th><th></th></tr></thead><tbody id="mv"></tbody></table><div class="row"><button id="addM">+ Movimiento</button></div>
+<script>
+const $=id=>document.getElementById(id),today=()=>new Date().toLocaleDateString('sv-SE'),uid=()=>Math.random().toString(36).slice(2,10);
+const fm=n=>'$'+Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:0}),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let F={saldos:[],movimientos:[]},T=[],t1=null,t2=null;$('mes').value=today().slice(0,7);
+async function load(){try{F=await (await fetch('/data/finanzas')).json();T=await (await fetch('/data/tareas')).json()}catch(e){}F.saldos=F.saldos||[];F.movimientos=F.movimientos||[];draw()}
+const post=(n,o)=>fetch('/data/'+n,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(o)});
+function save(){clearTimeout(t1);t1=setTimeout(async()=>{try{await post('finanzas',F);await post('tareas',T);$('msg').textContent='✔ guardado';setTimeout(()=>$('msg').textContent='',1500)}catch(e){$('msg').textContent='Error al guardar'}},400)}
+const inp=(k,v,ty='text',extra='')=>'<input data-k="'+k+'" type="'+ty+'" value="'+esc(v)+'" '+extra+'>';
+function draw(){const m=$('mes').value,mv=F.movimientos.filter(x=>(x.fecha||'').startsWith(m)),I=mv.filter(x=>x.tipo==='ingreso').reduce((a,x)=>a+ +x.monto,0),G=mv.filter(x=>x.tipo==='gasto').reduce((a,x)=>a+ +x.monto,0),S=F.saldos.reduce((a,x)=>a+ +x.monto,0);
+ const pc=T.filter(x=>!x.hecho&&x.tipo==='cobrar').reduce((a,x)=>a+ +x.monto,0),pp=T.filter(x=>!x.hecho&&x.tipo==='pagar').reduce((a,x)=>a+ +x.monto,0);
+ $('kI').textContent=fm(I);$('kG').textContent=fm(G);$('kR').textContent=fm(I-G);$('kR').className=I-G>=0?'up':'dn';$('kS').textContent=fm(S);$('kP').innerHTML='<span class="up">'+fm(pc)+'</span> / <span class="dn">'+fm(pp)+'</span>';
+ $('sa').innerHTML=F.saldos.map((s,i)=>'<tr data-i="'+i+'" data-l="s"><td>'+inp('nombre',s.nombre)+'</td><td>'+inp('monto',s.monto,'number')+'</td><td class="dim">'+esc(s.actualizado||'')+'</td><td><button class="d">✕</button></td></tr>').join('');
+ $('ta').innerHTML=T.map((x,i)=>'<tr data-i="'+i+'" data-l="t"><td><input type="checkbox" data-k="hecho" '+(x.hecho?'checked':'')+'></td><td>'+inp('texto',x.texto)+'</td><td><select data-k="tipo">'+['tarea','cobrar','pagar'].map(o=>'<option'+(x.tipo===o?' selected':'')+'>'+o+'</option>').join('')+'</select></td><td>'+inp('monto',x.monto||'','number')+'</td><td>'+inp('vence',x.vence||'','date')+'</td><td><button class="d">✕</button></td></tr>').join('');
+ $('mv').innerHTML=mv.map(x=>{const i=F.movimientos.indexOf(x);return '<tr data-i="'+i+'" data-l="m"><td>'+inp('fecha',x.fecha,'date')+'</td><td><select data-k="tipo">'+['ingreso','gasto'].map(o=>'<option'+(x.tipo===o?' selected':'')+'>'+o+'</option>').join('')+'</select></td><td>'+inp('concepto',x.concepto)+'</td><td>'+inp('categoria',x.categoria)+'</td><td>'+inp('monto',x.monto,'number')+'</td><td><button class="d">✕</button></td></tr>'}).join('')}
+const LST=l=>l==='s'?F.saldos:l==='t'?T:F.movimientos;
+document.body.addEventListener('input',e=>{const tr=e.target.closest('tr'),k=e.target.dataset.k;if(!tr||!k)return;const o=LST(tr.dataset.l)[+tr.dataset.i];o[k]=e.target.type==='checkbox'?e.target.checked:e.target.type==='number'?(e.target.value===''?'':+e.target.value):e.target.value;if(tr.dataset.l==='s'&&k==='monto')o.actualizado=today();save()});
+document.body.addEventListener('change',e=>{if(e.target.closest('tr')&&e.target.dataset.k)draw()});
+document.body.addEventListener('click',e=>{if(!e.target.classList.contains('d'))return;const tr=e.target.closest('tr');LST(tr.dataset.l).splice(+tr.dataset.i,1);save();draw()});
+$('addS').onclick=()=>{F.saldos.push({id:uid(),nombre:'',monto:0,actualizado:today()});save();draw()};
+$('addT').onclick=()=>{T.unshift({id:uid(),texto:'',tipo:'tarea',monto:'',vence:'',hecho:false});save();draw()};
+$('addM').onclick=()=>{F.movimientos.push({id:uid(),fecha:today(),tipo:'ingreso',concepto:'',categoria:'',monto:0});save();draw()};
+$('mes').onchange=draw;$('mp').onclick=()=>fetch('/open/mercadopago');
+$('csv').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',m=$('mes').value,l=[['Fecha','Tipo','Concepto','Categoria','Monto'].map(q).join(';')].concat(F.movimientos.filter(x=>(x.fecha||'').startsWith(m)).map(x=>[x.fecha,x.tipo,x.concepto,x.categoria,x.monto].map(q).join(';')));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+l.join('\r\n')],{type:'text/csv'}));a.download='movimientos_'+m+'.csv';a.click()};
+load();
+</script></body></html>

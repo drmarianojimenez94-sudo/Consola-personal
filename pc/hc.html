@@ -39,15 +39,19 @@ button.mic{padding:.2vh .8vw;font-size:1.6vh;border-color:var(--m);color:var(--m
 <div class="bar"><button class="go" id="save">GUARDAR HISTORIA</button><button id="close">CERRAR</button><span id="msg"></span></div>
 <div class="note">El dictado usa el reconocimiento de voz de Edge, que envía el audio a Microsoft: no dictar datos identificatorios innecesarios.</div>
 <script>
-const $=id=>document.getElementById(id);let pend=[];
-async function load(){try{pend=await (await fetch('/pacientes')).json()}catch(e){}
+const $=id=>document.getElementById(id);let pend=[],ALL=[];const today=()=>new Date().toLocaleDateString('sv-SE');
+async function load(){try{ALL=await (await fetch('/data/pacientes')).json();pend=ALL.filter(p=>p.estado==='pendiente'&&(p.fecha||'')<=today())}catch(e){}
  $('sel').innerHTML='<option value="">— nuevo / sin turno —</option>'+pend.map(p=>'<option value="'+p.id+'">'+(p.hora?p.hora+' · ':'')+p.nombre+' — '+(p.motivo||'')+'</option>').join('');
  if(pend.length){$('sel').value=pend[0].id;fill()}}
-function fill(){const p=pend.find(x=>x.id===$('sel').value);if(p){$('nombre').value=p.nombre;$('motivo').value=p.motivo||''}}
+function fill(){const p=pend.find(x=>x.id===$('sel').value);if(p){$('nombre').value=p.nombre;$('motivo').value=p.motivo||'';$('edad').value=p.edad||'';$('sexo').value=p.sexo||''}}
 $('sel').onchange=fill;load();
 $('save').onclick=async()=>{const d={id:$('sel').value};['nombre','edad','sexo','motivo','actual','antecedentes','medicacion','examen','diagnostico','plan'].forEach(k=>d[k]=$(k).value);
  if(!d.nombre.trim()){$('msg').textContent='Falta el nombre del paciente';return}
- try{const r=await fetch('/hc/save',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)});$('msg').textContent=r.ok?'✔ Guardada':'Error al guardar'}catch(e){$('msg').textContent='Error al guardar'}
+ try{const r=await fetch('/hc/save',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)});const j=await r.json();
+  if(j.ok){await load();let p=ALL.find(x=>x.id===d.id)||ALL.find(x=>x.nombre.trim().toLowerCase()===d.nombre.trim().toLowerCase());
+   if(!p){p={id:Math.random().toString(36).slice(2,10),nombre:d.nombre.trim(),dni:'',telefono:'',obraSocial:'',nacimiento:'',notas:'',consultas:[]};ALL.push(p)}
+   p.estado='atendido';p.edad=d.edad||p.edad||'';p.sexo=d.sexo||p.sexo||'';p.ultimaConsulta=today();p.consultas=p.consultas||[];p.consultas.push({fecha:today(),motivo:d.motivo,diagnostico:d.diagnostico,plan:d.plan,archivo:j.archivo});
+   await fetch('/data/pacientes',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(ALL)});$('msg').textContent='✔ Guardada'}else $('msg').textContent='Error al guardar'}catch(e){$('msg').textContent='Error al guardar'}
  if($('msg').textContent[0]==='✔'){load();setTimeout(()=>{['edad','sexo','motivo','actual','antecedentes','medicacion','examen','diagnostico','plan','nombre'].forEach(k=>$(k).value='')},800)}};
 $('close').onclick=()=>window.close();
 // dictado por voz en el campo elegido

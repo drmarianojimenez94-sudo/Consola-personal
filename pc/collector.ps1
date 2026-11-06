@@ -46,6 +46,8 @@ function DoWeather{
 }
 $tick=0
 while($true){
+  # si nadie mira el panel (hay un juego al frente), recolectar muy de vez en cuando
+  try{ if(((Get-Date)-(Get-Item "$data\seen.txt" -ErrorAction Stop).LastWriteTime).TotalSeconds -gt 25){ Start-Sleep 25 } }catch{}
   try{ DoStats }catch{}
   if($tick % 2 -eq 0){ try{ DoDownloads }catch{} }
   if($tick % 30 -eq 0){ try{ DoGames }catch{} }

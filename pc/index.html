@@ -141,6 +141,7 @@ body.orbit .side,body.orbit #dash{display:none}
   <button class="dbtn" id="bGames" style="--sc:#ff2bb4">&#9673; STEAM / JUEGOS</button>
   <button class="dbtn" id="bVoz" style="--sc:#ff2bb4">&#127897; VOZ</button>
   <button class="dbtn" id="bDesk" style="--sc:#00f5e0">&#9635; ESCRITORIO</button>
+  <button class="dbtn" id="bFx" style="--sc:#8a6bff">&#10022; FONDO: ECO</button>
  </div>
 </section>
 <main class="stage" id="stage">
@@ -229,7 +230,18 @@ const FIX={
 };
 // ================= escenario =================
 const stage=$('stage');let N=[],sel=0,level='dash';
-const DB={bOrb:{lb:'ORBITALES',d:'Entrar a los menús orbitales',sc:'#00f5e0',f:()=>openLevel('home'),main:1},bHC:{lb:'HISTORIA CLÍNICA',d:'Formulario de historia clínica',sc:'#4dff9d',f:()=>site('hc')},bGames:{lb:'STEAM / JUEGOS',d:'Steam Big Picture',sc:'#ff2bb4',f:()=>mode('games')},bVoz:{lb:'VOZ',d:'Hablar',sc:'#ff2bb4',f:()=>listen()},bDesk:{lb:'ESCRITORIO',d:'Windows',sc:'#00f5e0',f:()=>mode('desktop')}};
+// fondo: perfil ECO (liviano) o ANIMADO (mas cuadros por segundo); el color sigue la hora y el clima
+let WX=null,FX='eco';try{FX=localStorage.getItem('fx')||'eco'}catch(e){}
+const FXMS=()=>FX==='live'?(level==='dash'?120:100):(level==='dash'?1000:300);
+const TC={h:200,s:.7,l:.5,a:.5};
+function tintTarget(){const d=new Date(),hr=window.__hr!=null?window.__hr:d.getHours()+d.getMinutes()/60,t=WX?WX.temp:22,c=WX?WX.code:0,rain=(c>=51&&c<=67)||c>=80;
+ let h=t>=28?24:t>=18?140:195,s=.78,l=.5,a=.55;if(rain)h=225;
+ const wd=(a1,b1)=>((b1-a1+540)%360)-180,dawn=hr>=5.5&&hr<8.5,dusk=hr>=17.5&&hr<20.5,night=hr>=21||hr<5;
+ if(dawn||dusk){h=(h+wd(h,340)*.45+360)%360;l=.55}
+ if(night){h=(h+wd(h,255)*.45+360)%360;s=.6;l=.38;a=.62}
+ if(c>=3&&c<=48){s*=.65}return[h,s,l,a]}
+const DB={bOrb:{lb:'ORBITALES',d:'Entrar a los menús orbitales',sc:'#00f5e0',f:()=>openLevel('home'),main:1},bHC:{lb:'HISTORIA CLÍNICA',d:'Formulario de historia clínica',sc:'#4dff9d',f:()=>site('hc')},bGames:{lb:'STEAM / JUEGOS',d:'Steam Big Picture',sc:'#ff2bb4',f:()=>mode('games')},bVoz:{lb:'VOZ',d:'Hablar',sc:'#ff2bb4',f:()=>listen()},bDesk:{lb:'ESCRITORIO',d:'Windows',sc:'#00f5e0',f:()=>mode('desktop')},bFx:{lb:'FONDO',d:'Alterna fondo liviano / animado',sc:'#8a6bff',f:()=>{FX=FX==='live'?'eco':'live';try{localStorage.setItem('fx',FX)}catch(e){}fxLabel();say('Fondo '+(FX==='live'?'animado (usa más recursos)':'liviano'))}}};
+function fxLabel(){const e=document.getElementById('bFx');if(e)e.innerHTML='&#10022; FONDO: '+(FX==='live'?'ANIMADO':'ECO')}
 let PAC=[];const initials=n=>String(n||'').split(/\s+/).filter(Boolean).map(w=>w[0].toUpperCase()+'.').join(' ');
 async function pac(){try{if(document.hidden)return;const p=await (await fetch('/pacientes')).json();if(JSON.stringify(p)===JSON.stringify(PAC))return;PAC=p;
  $('pcnt').textContent=p.length?'· '+p.length+' pendiente'+(p.length>1?'s':''):'';
@@ -365,7 +377,7 @@ async function tick(){try{if(document.hidden)return;const s=await (await fetch('
  hist.push(s.cpu);hist.shift();histG.push(+s.gpuUtil);histG.shift();spark();$('up').textContent='UPTIME '+s.uptime;$('dsk').textContent='DISCO C: '+(s.diskTotalGB-s.diskFreeGB)+'/'+s.diskTotalGB+' GB'}catch(e){}}
 tick();setInterval(tick,3000);
 function clk(){if(document.hidden)return;const d=new Date(),h=d.toLocaleTimeString('es-AR',{hour12:false,hour:'2-digit',minute:'2-digit'}),dt=d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});$('clock').textContent=h;$('date').textContent=dt;$('dclock').textContent=h;$('ddate').textContent=dt}clk();setInterval(clk,5000);
-pac();setInterval(pac,60000);
+pac();setInterval(pac,60000);fxLabel();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){clk();tick();dls();pac()}});
 const fm=n=>n==null?'-':'$'+Number(n).toLocaleString('es-AR',{maximumFractionDigits:1});
 const ch=c=>c==null?'':` <small class="${c>=0?'up':'dn'}">${c>=0?'▲':'▼'}${Math.abs(c)}%</small>`;
@@ -374,7 +386,7 @@ async function fin(){try{const f=await (await fetch('/finance')).json();
  $('f6').innerHTML=f.mpTna?f.mpTna+'%':'<span class="dim">sin dato (ref '+(f.arsBest?f.arsBestEnt+' '+f.arsBest+'%':'-')+')</span>'}catch(e){}}
 fin();setInterval(fin,120000);
 const wc=c=>c===0?'Despejado':c<=3?'Nublado':c<=48?'Niebla':c<=67||(c>=80&&c<=82)?'Lluvia':c<=77?'Nieve':'Tormenta';
-async function wxf(){try{const w=await (await fetch('/weather')).json();if(!w)return;$('wT').textContent=Math.round(w.temp)+'°';$('wD').innerHTML=wc(w.code)+'<br>'+w.city+' · viento '+w.wind+' km/h';
+async function wxf(){try{const w=await (await fetch('/weather')).json();if(!w)return;WX=w;$('wT').textContent=Math.round(w.temp)+'°';$('wD').innerHTML=wc(w.code)+'<br>'+w.city+' · viento '+w.wind+' km/h';
  [0,1,2].forEach(i=>{const d=w.days[i];$('w'+i).textContent=Math.round(d.max)+'° / '+Math.round(d.min)+'° · '+wc(d.code)+' · '+d.rain+'%'})}catch(e){}}
 wxf();setInterval(wxf,900000);
 async function dls(){try{if(document.hidden)return;const d=await (await fetch('/downloads')).json(),it=(d.steam||[]).filter(x=>x.pct<100).slice(0,4);
@@ -447,12 +459,15 @@ if(location.search.includes('static')){const st=document.createElement('style');
  const layers=[[160,.12,.5],[100,.35,.8],[46,.7,1.2]].map(L=>Array.from({length:L[0]},()=>{const m=Math.pow(Math.random(),3);return{x:Math.random(),y:Math.random(),p:Math.random()*6.28,f:L[1],s:L[2]*(.7+m*1.8),b:.35+m*.65,c:SC[Math.random()*5|0],g:m>.8}}));
  const cons=[];for(let k=0;k<2;k++)cons.push(layers[1].slice(k*7,k*7+5));
  let shoot=null,nextShoot=performance.now()+3500,last=0,rot=0;
- function d(now){requestAnimationFrame(d);if(document.hidden||now-last<(level==='dash'?2000:300))return;const dt=(now-last)/1000;last=now;rot+=dt*.03;BG.cx+=(BG.tx-BG.cx)*.05;BG.cy+=(BG.ty-BG.cy)*.05;
+ function d(now){requestAnimationFrame(d);if(document.hidden||now-last<FXMS())return;const dt=(now-last)/1000;last=now;rot+=dt*.03;BG.cx+=(BG.tx-BG.cx)*.05;BG.cy+=(BG.ty-BG.cy)*.05;
+  // color del universo segun hora y clima (se interpola suavemente)
+  {const T=tintTarget(),wd=(a,b)=>((b-a+540)%360)-180;TC.h=(TC.h+wd(TC.h,T[0])*.12+360)%360;TC.s+=(T[1]-TC.s)*.12;TC.l+=(T[2]-TC.l)*.12;TC.a+=(T[3]-TC.a)*.12}
   g.globalCompositeOperation='source-over';g.globalAlpha=1;g.fillStyle='#02030a';g.fillRect(0,0,W,H);
   // nebulosa: se desplaza con parallax y respira
-  g.globalAlpha=.92;g.drawImage(nb,-W*.03+BG.cx*.06,-H*.03+BG.cy*.06,W*1.06,H*1.06);
+  g.globalAlpha=.92;g.drawImage(nb,-W*.03+BG.cx*.06+Math.sin(now*.00008)*W*.025,-H*.03+BG.cy*.06+Math.cos(now*.00006)*H*.025,W*1.06,H*1.06);
   // galaxia inclinada y rotando, mezcla aditiva
   const gx=W/2+BG.cx*.22,gy=H*.46+BG.cy*.22,gs=Math.min(W,H)*1.55;g.save();g.translate(gx,gy);g.scale(1,.5);g.rotate(rot);g.globalCompositeOperation='lighter';g.globalAlpha=.95;g.drawImage(gc,-gs/2,-gs/2,gs,gs);g.restore();
+  g.globalCompositeOperation='color';g.globalAlpha=Math.min(.9,TC.a+.06*Math.sin(now*.0004));g.fillStyle='hsl('+TC.h.toFixed(0)+','+(TC.s*100).toFixed(0)+'%,'+(TC.l*100).toFixed(0)+'%)';g.fillRect(0,0,W,H);
   g.globalCompositeOperation='lighter';
   layers.forEach(L=>L.forEach(s=>{const x=((s.x*W+BG.cx*s.f)%W+W)%W,y=((s.y*H+BG.cy*s.f)%H+H)%H,tw=.7+.3*Math.sin(now*.0018+s.p);g.globalAlpha=s.b*tw;g.fillStyle='rgb('+s.c[0]+','+s.c[1]+','+s.c[2]+')';g.fillRect(x,y,s.s,s.s);
    if(s.g){g.globalAlpha=s.b*tw*.35;g.fillRect(x-s.s*3,y+s.s*.4,s.s*7,.7);g.fillRect(x+s.s*.4,y-s.s*3,.7,s.s*7)}}));

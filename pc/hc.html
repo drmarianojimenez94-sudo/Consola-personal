@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Historia clínica</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--c:#00f5e0;--m:#ff2bb4;--line:rgba(120,255,240,.25)}
+*{box-sizing:border-box}
+body{margin:0;background:#04050d;color:#d8fffb;font:2.2vh/1.4 "Segoe UI",system-ui,sans-serif;padding:3vh 6vw 6vh}
+h1{font-size:3.4vh;letter-spacing:.3em;margin:0 0 .5vh}h1 span{color:var(--c)}
+.sub{opacity:.7;margin-bottom:2.5vh;font-size:1.9vh}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6vh 1.4vw}
+.f{display:flex;flex-direction:column;gap:.5vh}.f.w2{grid-column:span 2}.f.w4{grid-column:span 4}
+label{font-size:1.6vh;letter-spacing:.2em;color:var(--m);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+input,select,textarea{font:inherit;color:#eaffff;background:#0b1030;border:1px solid var(--line);border-radius:1.2vh;padding:1.1vh 1vw;width:100%}
+textarea{min-height:11vh;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--c)}
+button{font:inherit;cursor:pointer;color:#eaffff;border:1px solid var(--c);background:#0b1030;border-radius:1.2vh;padding:1.2vh 1.6vw}
+button.mic{padding:.2vh .8vw;font-size:1.6vh;border-color:var(--m);color:var(--m)}button.mic.on{background:var(--m);color:#04050d}
+.bar{display:flex;gap:1.4vw;margin-top:2.4vh;align-items:center}
+.bar .go{background:linear-gradient(90deg,#00f5e044,#ff2bb444);font-weight:600;letter-spacing:.15em}
+#msg{opacity:.9;color:#4dff9d}
+.note{font-size:1.6vh;opacity:.65;margin-top:1.5vh}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.f.w2,.f.w4{grid-column:auto}}
+@font-face{font-family:PS;src:url(/fonts/pressstart.woff2)}@font-face{font-family:VT;src:url(/fonts/vt323.woff2)}
+:root{--c:#ffd98a;--m:#ff7a3d;--line:rgba(255,217,138,.45)}
+body{background:#07040a!important;font:3.2vh/1.15 VT,monospace!important;color:#fff3df!important}
+h1,h2,th,label{font-family:PS,monospace!important;font-weight:400!important}h1{font-size:2.6vh!important}label{font-size:1.7vh!important}th{font-size:1.5vh!important}
+input,select,textarea,button{font:inherit!important;border-radius:0!important;border-width:.3vh!important;background:#14090d!important;color:#fff3df!important}
+button:focus,input:focus,select:focus,textarea:focus{outline:.4vh solid var(--m)!important}</style></head><body>
+<h1>HISTORIA <span>CLÍNICA</span></h1>
+<div class="sub">Se guarda en la carpeta Pacientes\Historias de esta PC. Cada campo tiene dictado por voz (🎙).</div>
+<div class="grid">
+ <div class="f w2"><label>Paciente pendiente de hoy</label><select id="sel"><option value="">— nuevo / sin turno —</option></select></div>
+ <div class="f w2"><label>Paciente</label><input id="nombre" autocomplete="off"></div>
+ <div class="f"><label>Edad</label><input id="edad" inputmode="numeric"></div>
+ <div class="f"><label>Sexo</label><select id="sexo"><option></option><option>F</option><option>M</option><option>Otro</option></select></div>
+ <div class="f w2"><label>Motivo de consulta <button class="mic" data-t="motivo">🎙</button></label><input id="motivo"></div>
+ <div class="f w4"><label>Enfermedad actual <button class="mic" data-t="actual">🎙</button></label><textarea id="actual"></textarea></div>
+ <div class="f w2"><label>Antecedentes <button class="mic" data-t="antecedentes">🎙</button></label><textarea id="antecedentes"></textarea></div>
+ <div class="f w2"><label>Medicación <button class="mic" data-t="medicacion">🎙</button></label><textarea id="medicacion"></textarea></div>
+ <div class="f w4"><label>Examen físico <button class="mic" data-t="examen">🎙</button></label><textarea id="examen"></textarea></div>
+ <div class="f w2"><label>Diagnóstico presuntivo <button class="mic" data-t="diagnostico">🎙</button></label><textarea id="diagnostico"></textarea></div>
+ <div class="f w2"><label>Plan <button class="mic" data-t="plan">🎙</button></label><textarea id="plan"></textarea></div>
+</div>
+<div class="bar"><button class="go" id="save">GUARDAR HISTORIA</button><button id="close">CERRAR</button><span id="msg"></span></div>
+<div class="note">El dictado usa el reconocimiento de voz de Edge, que envía el audio a Microsoft: no dictar datos identificatorios innecesarios.</div>
+<script>
+const $=id=>document.getElementById(id);let pend=[],ALL=[];const today=()=>new Date().toLocaleDateString('sv-SE');
+async function load(){try{ALL=await (await fetch('/data/pacientes')).json();pend=ALL.filter(p=>p.estado==='pendiente'&&(p.fecha||'')<=today())}catch(e){}
+ $('sel').innerHTML='<option value="">— nuevo / sin turno —</option>'+pend.map(p=>'<option value="'+p.id+'">'+(p.hora?p.hora+' · ':'')+p.nombre+' — '+(p.motivo||'')+'</option>').join('');
+ if(pend.length){$('sel').value=pend[0].id;fill()}}
+function fill(){const p=pend.find(x=>x.id===$('sel').value);if(p){$('nombre').value=p.nombre;$('motivo').value=p.motivo||'';$('edad').value=p.edad||'';$('sexo').value=p.sexo||''}}
+$('sel').onchange=fill;load();
+$('save').onclick=async()=>{const d={id:$('sel').value};['nombre','edad','sexo','motivo','actual','antecedentes','medicacion','examen','diagnostico','plan'].forEach(k=>d[k]=$(k).value);
+ if(!d.nombre.trim()){$('msg').textContent='Falta el nombre del paciente';return}
+ try{const r=await fetch('/hc/save',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(d)});const j=await r.json();
+  if(j.ok){await load();let p=ALL.find(x=>x.id===d.id)||ALL.find(x=>x.nombre.trim().toLowerCase()===d.nombre.trim().toLowerCase());
+   if(!p){p={id:Math.random().toString(36).slice(2,10),nombre:d.nombre.trim(),dni:'',telefono:'',obraSocial:'',nacimiento:'',notas:'',consultas:[]};ALL.push(p)}
+   p.estado='atendido';p.edad=d.edad||p.edad||'';p.sexo=d.sexo||p.sexo||'';p.ultimaConsulta=today();p.consultas=p.consultas||[];p.consultas.push({fecha:today(),motivo:d.motivo,diagnostico:d.diagnostico,plan:d.plan,archivo:j.archivo});
+   await fetch('/data/pacientes',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(ALL)});$('msg').textContent='✔ Guardada'}else $('msg').textContent='Error al guardar'}catch(e){$('msg').textContent='Error al guardar'}
+ if($('msg').textContent[0]==='✔'){load();setTimeout(()=>{['edad','sexo','motivo','actual','antecedentes','medicacion','examen','diagnostico','plan','nombre'].forEach(k=>$(k).value='')},800)}};
+$('close').onclick=()=>parent.postMessage('close','*');
+// dictado por voz en el campo elegido
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,cur=null;
+document.querySelectorAll('.mic').forEach(b=>b.onclick=()=>{if(!SR){$('msg').textContent='Sin reconocimiento de voz en este navegador';return}
+ if(rec){rec.stop();return}const el=$(b.dataset.t);b.classList.add('on');el.focus();rec=new SR();rec.lang='es-AR';rec.continuous=true;rec.interimResults=false;
+ rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)el.value+=(el.value&&!/\s$/.test(el.value)?' ':'')+e.results[i][0].transcript.trim()};
+ rec.onend=()=>{rec=null;b.classList.remove('on')};rec.onerror=()=>{};rec.start()});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName))parent.postMessage('close','*')});</script></body></html>

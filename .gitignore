@@ -1,0 +1,5 @@
+pc/data/
+pc/rates.json
+*.log
+*.dmp
+edge-profile/

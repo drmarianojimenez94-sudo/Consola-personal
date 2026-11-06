@@ -1,0 +1,11 @@
+{
+  "name": "Neon Remote",
+  "short_name": "Neon Remote",
+  "description": "Control remoto, joystick, mouse y voz para Neon Console",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#05060f",
+  "theme_color": "#05060f",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

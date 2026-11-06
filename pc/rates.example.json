@@ -1,0 +1,7 @@
+﻿{
+    "lon":  -58.38,
+    "mercadoPagoTNA":  null,
+    "nota":  "Mercado Pago no publica API: escribi tu TNA (ej 24.5). Cambia ciudad/lat/lon para el clima.",
+    "lat":  -34.61,
+    "ciudad":  "Buenos Aires"
+}

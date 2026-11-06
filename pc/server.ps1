@@ -1,0 +1,123 @@
+# Servidor local de la consola (solo 127.0.0.1). Responde desde archivos cacheados por collector.ps1: nunca se bloquea.
+$root = $PSScriptRoot; $data="$root\data"; New-Item -ItemType Directory -Force $data | Out-Null
+$ProgressPreference='SilentlyContinue'
+$edgeExe='C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+$apps = @{
+  'edge'=$edgeExe; 'terminal'='wt.exe'; 'explorer'='explorer.exe'
+  'steam'='C:\Program Files (x86)\Steam\steam.exe'; 'battlenet'='C:\Program Files (x86)\Battle.net\Battle.net Launcher.exe'
+  'claude'='shell:AppsFolder\Claude_pzs8sxrjxfjjc!Claude'; 'taskmgr'='taskmgr.exe'; 'bigpicture'='steam://open/bigpicture'
+  'settings'='ms-settings:'; 'pacientes'="$env:USERPROFILE\Pacientes"; 'pcdiag'='C:\ProgramData\PCDiag'; 'hwinfo'='C:\Program Files\HWiNFO64\HWiNFO64.exe'
+}
+$sites = @{
+ 'netflix'='https://www.netflix.com'; 'disney'='https://www.disneyplus.com'; 'prime'='https://www.primevideo.com'
+ 'max'='https://www.max.com'; 'youtube'='https://www.youtube.com/tv'; 'ytmusic'='https://music.youtube.com'
+ 'spotify'='https://open.spotify.com'; 'twitch'='https://www.twitch.tv'; 'paramount'='https://www.paramountplus.com'
+ 'appletv'='https://tv.apple.com'; 'crunchyroll'='https://www.crunchyroll.com'
+ 'gmail'='https://mail.google.com'; 'contacts'='https://contacts.google.com'; 'calendar'='https://calendar.google.com'
+ 'whatsapp'='https://web.whatsapp.com'; 'chatgpt'='https://chatgpt.com'; 'gemini'='https://gemini.google.com'
+ 'drive'='https://drive.google.com'; 'onedrive'='https://onedrive.live.com'; 'photos'='https://photos.google.com'
+ 'meet'='https://meet.google.com'; 'claudeweb'='https://claude.ai'; 'dolarhoy'='https://dolarhoy.com'; 'coingecko'='https://www.coingecko.com'
+ 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
+}
+# busquedas por voz: plataforma -> plantilla de URL (el texto se codifica; solo estos destinos)
+$search = @{
+ 'youtube'='https://www.youtube.com/results?search_query={0}'; 'ytmusic'='https://music.youtube.com/search?q={0}'
+ 'netflix'='https://www.netflix.com/search?q={0}'; 'disney'='https://www.disneyplus.com/search/{0}'
+ 'prime'='https://www.primevideo.com/search/?phrase={0}'; 'max'='https://play.max.com/search?q={0}'
+ 'spotify'='https://open.spotify.com/search/{0}'; 'twitch'='https://www.twitch.tv/search?term={0}'
+ 'paramount'='https://www.paramountplus.com/search/?q={0}'; 'crunchyroll'='https://www.crunchyroll.com/search?q={0}'
+ 'google'='https://www.google.com/search?q={0}'
+}
+Add-Type -Namespace W -Name U -MemberDefinition '[DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int c); [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h); [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow(); [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h,out RECT r); [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h,out uint pid); [DllImport("user32.dll")] public static extern void keybd_event(byte vk,byte sc,uint f,UIntPtr e); [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc p,IntPtr l); [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h); [DllImport("user32.dll",CharSet=CharSet.Auto)] static extern int GetClassName(IntPtr h,System.Text.StringBuilder b,int n); [DllImport("user32.dll",CharSet=CharSet.Auto)] static extern int GetWindowText(IntPtr h,System.Text.StringBuilder b,int n); delegate bool EnumProc(IntPtr h,IntPtr l); public static IntPtr[] EdgeWins(){ var r=new System.Collections.Generic.List<IntPtr>(); EnumWindows((h,l)=>{ if(IsWindowVisible(h)){ var c=new System.Text.StringBuilder(64); GetClassName(h,c,64); if(c.ToString()=="Chrome_WidgetWin_1"){ var t=new System.Text.StringBuilder(256); GetWindowText(h,t,256); if(t.Length>0) r.Add(h);} } return true; },IntPtr.Zero); return r.ToArray(); } public static string Title(IntPtr h){ var t=new System.Text.StringBuilder(256); GetWindowText(h,t,256); return t.ToString(); } [StructLayout(LayoutKind.Sequential)] public struct RECT{public int L,T,R,B;}'
+Add-Type -AssemblyName System.Windows.Forms
+function FullscreenFront{ Start-Sleep -Milliseconds 2800; try{ $h=[W.U]::GetForegroundWindow(); $pid2=[uint32]0; [void][W.U]::GetWindowThreadProcessId($h,[ref]$pid2); $p=Get-Process -Id $pid2 -ErrorAction Stop
+  if($p.Name -eq 'msedge' -and $p.MainWindowTitle -notlike 'NEON CONSOLE*'){ [void][W.U]::ShowWindow($h,3); Start-Sleep -Milliseconds 500; $rc=New-Object 'W.U+RECT'; [void][W.U]::GetWindowRect($h,[ref]$rc); $sh=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
+   if(($rc.B-$rc.T) -lt ($sh-2)){ [W.U]::keybd_event(0x7A,0,0,[UIntPtr]::Zero); [W.U]::keybd_event(0x7A,0,2,[UIntPtr]::Zero) } } }catch{} }
+function NewHC{ $pd="$env:USERPROFILE\Pacientes"; $n="$pd\HC_"+(Get-Date -f 'yyyyMMdd_HHmm')+'.md'; Copy-Item "$pd\_plantilla\historia_clinica.md" $n -Force; Start-Process notepad.exe -ArgumentList "`"$n`"" }
+function OpenFront($eargs){
+  $before=@([W.U]::EdgeWins()); Start-Process $edgeExe -ArgumentList $eargs
+  $new=$null; for($i=0;$i -lt 20 -and -not $new;$i++){ Start-Sleep -Milliseconds 350; $new=[W.U]::EdgeWins() | ? { $before -notcontains $_ -and ([W.U]::Title($_)) -notlike 'NEON CONSOLE*' } | Select -First 1 }
+  if(-not $new){ return }
+  Start-Sleep -Milliseconds 700
+  [W.U]::keybd_event(0x12,0,0,[UIntPtr]::Zero); [W.U]::keybd_event(0x12,0,2,[UIntPtr]::Zero)   # Alt: desbloquea el cambio de ventana al frente
+  [void][W.U]::ShowWindow($new,3); [void][W.U]::SetForegroundWindow($new); Start-Sleep -Milliseconds 500
+  $rc=New-Object 'W.U+RECT'; [void][W.U]::GetWindowRect($new,[ref]$rc); $sh=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
+  if(($rc.B-$rc.T) -lt ($sh-2)){ [W.U]::keybd_event(0x7A,0,0,[UIntPtr]::Zero); [W.U]::keybd_event(0x7A,0,2,[UIntPtr]::Zero) }
+}
+function MinimizeOthers{ foreach($h in [W.U]::EdgeWins()){ if(([W.U]::Title($h)) -notlike 'NEON CONSOLE*'){ [void][W.U]::ShowWindow($h,6) } } }
+function LaunchFront($target){
+  $before=@([W.U]::EdgeWins() | % { $_.ToInt64() }) 
+  Start-Process $target
+  $new=$null; for($i=0;$i -lt 30 -and -not $new;$i++){ Start-Sleep -Milliseconds 400; $new=Get-Process | ? { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -and $_.MainWindowTitle -notlike 'NEON CONSOLE*' -and $_.Name -notin 'claude','msedge','explorer' -and (Get-Date) -lt ($_.StartTime.AddSeconds(25)) } | Select -First 1 }
+  if($new){ [W.U]::keybd_event(0x12,0,0,[UIntPtr]::Zero); [W.U]::keybd_event(0x12,0,2,[UIntPtr]::Zero); [void][W.U]::ShowWindow($new.MainWindowHandle,3); [void][W.U]::SetForegroundWindow($new.MainWindowHandle) }
+}
+# apps de la Tienda instaladas: si existen se abren como apps (pantalla completa/maximizadas); si no, se abre la web
+$storeApps=@{ 'netflix'='Netflix'; 'disney'='Disney'; 'prime'='Prime Video'; 'appletv'='Apple TV'; 'whatsapp'='WhatsApp'; 'spotify'='Spotify' }
+$script:sa=$null; $script:saAt=[datetime]::MinValue
+function FindStoreApp($key){
+  if(-not $storeApps.ContainsKey($key)){ return $null }
+  if(-not $script:sa -or ((Get-Date)-$script:saAt).TotalMinutes -gt 5){ try{ $script:sa=@(Get-StartApps); $script:saAt=Get-Date }catch{} }
+  $n=$storeApps[$key]; $script:sa | ? { $_.Name -like "*$n*" } | Select -First 1
+}
+function OpenApp($app,$title){
+  if($app.AppID -match '^[A-Za-z]:\\'){ Start-Process $app.AppID } else { Start-Process explorer.exe "shell:AppsFolder\$($app.AppID)" }
+  $h=$null; for($i=0;$i -lt 30 -and -not $h;$i++){ Start-Sleep -Milliseconds 400; $h=(Get-Process | ? { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -like "*$title*" -and $_.Name -notin 'claude','msedge' } | Select -First 1).MainWindowHandle }
+  if($h){ [W.U]::keybd_event(0x12,0,0,[UIntPtr]::Zero); [W.U]::keybd_event(0x12,0,2,[UIntPtr]::Zero); [void][W.U]::ShowWindow($h,3); [void][W.U]::SetForegroundWindow($h) }
+}
+function KioskWin { Get-Process msedge -ErrorAction SilentlyContinue | ? { $_.MainWindowTitle -like 'NEON CONSOLE*' } | Select -First 1 }
+function KioskStart { Start-Process $edgeExe -ArgumentList "--kiosk http://127.0.0.1:8777 --edge-kiosk-type=fullscreen --no-first-run --autoplay-policy=no-user-gesture-required --user-data-dir=`"$env:LOCALAPPDATA\NeonPanel\edge-profile`"" }
+function ToConsole($bigpicture){ MinimizeOthers; $k=KioskWin; if($k){ [W.U]::ShowWindow($k.MainWindowHandle,9)|Out-Null; [W.U]::SetForegroundWindow($k.MainWindowHandle)|Out-Null } else { KioskStart }; if($bigpicture){ Start-Process 'steam://open/bigpicture' } }
+function ToDesktop { $k=KioskWin; if($k){ [W.U]::ShowWindow($k.MainWindowHandle,6)|Out-Null } }
+$script:ipv=$null; $script:ipAt=[datetime]::MinValue
+function GetIp { if($script:ipv -and ((Get-Date)-$script:ipAt).TotalSeconds -lt 60){ return $script:ipv }
+  try{ $s=New-Object Net.Sockets.Socket('InterNetwork','Dgram','Udp'); $s.Connect('8.8.8.8',80); $script:ipv=$s.LocalEndPoint.Address.ToString(); $s.Close(); $script:ipAt=Get-Date }catch{}; $script:ipv }
+# PIN de vinculacion del telefono (se crea una vez)
+$pinFile="$data\pin.txt"; if(-not (Test-Path $pinFile)){ (Get-Random -Minimum 100000 -Maximum 999999).ToString() | Set-Content $pinFile }
+$inbox = New-Object System.Collections.ArrayList
+$l = New-Object System.Net.HttpListener
+$l.Prefixes.Add('http://127.0.0.1:8777/'); $l.Start()
+function Send($ctx,$body,$type='application/json'){ $b=[Text.Encoding]::UTF8.GetBytes($body); $ctx.Response.ContentType=$type; $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() }
+function SendFile($ctx,$name,$empty='null'){ $f="$data\$name.json"; if(Test-Path $f){ Send $ctx ([IO.File]::ReadAllText($f)) } else { Send $ctx $empty } }
+while($l.IsListening){
+  try{ $ctx = $l.GetContext() }catch{ Start-Sleep -Milliseconds 200; continue }
+  $p = $ctx.Request.Url.AbsolutePath
+  try {
+    # defensa contra paginas web externas (CSRF / DNS rebinding): solo mismo origen y Host local
+    $sfs=$ctx.Request.Headers['Sec-Fetch-Site']; $hh=$ctx.Request.Headers['Host']
+    if(($sfs -and $sfs -notin 'same-origin','none') -or ($hh -ne '127.0.0.1:8777')){ $ctx.Response.StatusCode=403; Send $ctx 'forbidden' 'text/plain'; continue }
+    if($p -eq '/stats'){ SendFile $ctx 'stats'
+    } elseif($p -eq '/finance'){ SendFile $ctx 'finance'
+    } elseif($p -eq '/weather'){ SendFile $ctx 'weather'
+    } elseif($p -eq '/downloads'){ SendFile $ctx 'downloads'
+    } elseif($p -eq '/games'){ SendFile $ctx 'games' '[]'
+    } elseif($p -eq '/info'){ Send $ctx (@{ip=(GetIp);port=8443;pin=(Get-Content $pinFile -Raw).Trim()}|ConvertTo-Json -Compress)
+    } elseif($p -eq '/inbox/push'){ $t=$ctx.Request.QueryString['t']; if($t -and $t.Length -lt 300 -and $inbox.Count -lt 20){ [void]$inbox.Add($t) }; Send $ctx '{"ok":true}'
+    } elseif($p -eq '/inbox/pop'){ $o=@($inbox); $inbox.Clear(); Send $ctx (ConvertTo-Json @($o) -Compress)
+    } elseif($p -like '/open/*'){
+      $k=$p.Substring(6)
+      if($k -eq 'steamdl'){ Start-Process 'steam://nav/downloads'; Send $ctx '{"ok":true}' }
+      elseif($k -eq 'steamlib'){ Start-Process 'steam://open/games'; Send $ctx '{"ok":true}' }
+      elseif((FindStoreApp $k)){ $ap=FindStoreApp $k; Send $ctx '{"ok":true}'; OpenApp $ap $storeApps[$k] }
+      elseif($sites.ContainsKey($k)){ Send $ctx '{"ok":true}'; OpenFront @("--app=$($sites[$k])","--start-fullscreen") }
+      else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
+    } elseif($p -like '/search/*'){
+      $k=$p.Substring(8); $q=$ctx.Request.QueryString['q']
+      if($search.ContainsKey($k) -and $q -and $q.Length -lt 200){ $u=[string]::Format($search[$k],[uri]::EscapeDataString($q)); Send $ctx '{"ok":true}'; OpenFront @("--app=$u","--start-fullscreen") }
+      else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
+    } elseif($p -like '/steamrun/*'){
+      $id=$p.Substring(10); if($id -match '^\d+$'){ Start-Process "steam://rungameid/$id"; Send $ctx '{"ok":true}' } else { $ctx.Response.StatusCode=400; Send $ctx '{"ok":false}' }
+    } elseif($p -like '/fonts/*'){
+      $fp=Join-Path "$root\fonts" ([IO.Path]::GetFileName($p))
+      if(Test-Path $fp){ $b=[IO.File]::ReadAllBytes($fp); $ctx.Response.ContentType='font/woff2'; $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() } else { $ctx.Response.StatusCode=404; Send $ctx 'no' 'text/plain' }
+    } elseif($p -eq '/mode/console'){ ToConsole $false; Send $ctx '{"ok":true}'
+    } elseif($p -eq '/mode/games'){ ToConsole $true; Send $ctx '{"ok":true}'
+    } elseif($p -eq '/mode/desktop'){ ToDesktop; Send $ctx '{"ok":true}'
+    } elseif($p -like '/launch/*'){
+      $k=$p.Substring(8)
+      if($k -eq 'nuevahc'){ NewHC; Send $ctx '{"ok":true}' }
+      elseif($apps.ContainsKey($k)){ Send $ctx '{"ok":true}'; if($k -in 'explorer','terminal','taskmgr','settings','hwinfo','steam','battlenet','pacientes'){ LaunchFront $apps[$k] } else { Start-Process $apps[$k] } } else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
+    } elseif($p -eq '/' -or $p -eq '/index.html'){ Send $ctx ([IO.File]::ReadAllText("$root\index.html",[Text.Encoding]::UTF8)) 'text/html; charset=utf-8'
+    } else { $ctx.Response.StatusCode=404; Send $ctx 'no' 'text/plain' }
+  } catch { try{ $ctx.Response.Abort() }catch{} }
+}
+

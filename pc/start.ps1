@@ -12,7 +12,7 @@ function Alive($file){ [bool](Get-CimInstance Win32_Process -Filter "Name='power
 function Ensure($file){ if(-not (Alive $file)){ Log "iniciando $file"; Start-Process powershell -WindowStyle Hidden -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',"$pc\$file" } }
 $t0 = Get-Date; $opened = $false; Log 'start.ps1 iniciado'
 while($true){
-  Ensure 'collector.ps1'; Ensure 'server.ps1'; Ensure 'phone_server.ps1'
+  Ensure 'collector.ps1'; Ensure 'server.ps1'; Ensure 'phone_server.ps1'; Ensure 'padhome.ps1'
   if(-not $opened){
     try{ Invoke-WebRequest http://127.0.0.1:8777/stats -UseBasicParsing -TimeoutSec 2 | Out-Null
       $kargs = '--kiosk http://127.0.0.1:8777 --edge-kiosk-type=fullscreen --no-first-run --autoplay-policy=no-user-gesture-required --user-data-dir="' + $env:LOCALAPPDATA + '\NeonPanel\edge-profile"'

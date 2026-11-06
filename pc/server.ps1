@@ -17,7 +17,7 @@ $sites = @{
  'whatsapp'='https://web.whatsapp.com'; 'chatgpt'='https://chatgpt.com'; 'gemini'='https://gemini.google.com'
  'drive'='https://drive.google.com'; 'onedrive'='https://onedrive.live.com'; 'photos'='https://photos.google.com'
  'meet'='https://meet.google.com'; 'claudeweb'='https://claude.ai'; 'dolarhoy'='https://dolarhoy.com'; 'coingecko'='https://www.coingecko.com'
- 'cuentas'='http://127.0.0.1:8777/finanzas.html'; 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'lahorda'='https://fondal-studios.github.io/La-Horda/'; 'vortex'='https://fondal-studios.github.io/Vortex/'; 'mercadolibre'='https://www.mercadolibre.com.ar'
+ 'cuentas'='http://127.0.0.1:8777/finanzas.html'; 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'lahorda'='https://fondal-studios.github.io/La-Horda/'; 'play-La-Horda'='http://127.0.0.1:8777/play/La-Horda/'; 'play-Bosta-Cosmica'='http://127.0.0.1:8777/play/Bosta-Cosmica/'; 'play-Vortex'='http://127.0.0.1:8777/play/Vortex/'; 'play-FreeBird'='http://127.0.0.1:8777/play/FreeBird/'; 'xcloud'='https://www.xbox.com/play'; 'geforcenow'='https://play.geforcenow.com'; 'vortex'='https://fondal-studios.github.io/Vortex/'; 'mercadolibre'='https://www.mercadolibre.com.ar'
 }
 # busquedas por voz: plataforma -> plantilla de URL (el texto se codifica; solo estos destinos)
 $search = @{
@@ -80,7 +80,7 @@ $inbox = New-Object System.Collections.ArrayList
 $l = New-Object System.Net.HttpListener
 $l.Prefixes.Add('http://127.0.0.1:8777/'); $l.Start()
 # datos del consultorio: JSON en %USERPROFILE%\Consultorio (fuera del repositorio), con copia de seguridad rotativa
-$ConsDir="$env:USERPROFILE\Consultorio"; $ConsNames='pacientes','finanzas','tareas'
+$ConsDir="$env:USERPROFILE\Consultorio"; $ConsNames='pacientes','finanzas','tareas','alarmas'
 function ConsRead($n){ $f="$ConsDir\$n.json"; if(Test-Path $f){ [IO.File]::ReadAllText($f,[Text.Encoding]::UTF8) } elseif($n -eq 'finanzas'){ '{"saldos":[],"movimientos":[]}' } else { '[]' } }
 function ConsWrite($n,$json){ New-Item -ItemType Directory -Force "$ConsDir\backup" | Out-Null; $f="$ConsDir\$n.json"; if(Test-Path $f){ Copy-Item $f "$ConsDir\backup\$n.json" -Force }; [IO.File]::WriteAllText($f,$json,[Text.UTF8Encoding]::new($false)) }
 function Send($ctx,$body,$type='application/json'){ $b=[Text.Encoding]::UTF8.GetBytes($body); $ctx.Response.ContentType=$type; $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() }
@@ -132,6 +132,30 @@ while($l.IsListening){
       else { $ctx.Response.StatusCode=404; Send $ctx '{"ok":false}' }
     } elseif($p -like '/steamrun/*'){
       $id=$p.Substring(10); if($id -match '^\d+$'){ Start-Process "steam://rungameid/$id"; Send $ctx '{"ok":true}' } else { $ctx.Response.StatusCode=400; Send $ctx '{"ok":false}' }
+    } elseif($p -eq '/alarm/ring'){
+      $global:alarm=@{name=[string]$ctx.Request.QueryString['n'];hora=[string]$ctx.Request.QueryString['h']}
+      try{ if(-not $global:snd){ $global:snd=New-Object System.Media.SoundPlayer 'C:\Windows\Media\Alarm01.wav' }; $global:snd.PlayLooping() }catch{}
+      if($inbox.Count -lt 20){ [void]$inbox.Add('alarm:'+$global:alarm.name+'|'+$global:alarm.hora) }
+      $k=KioskWin; if($k){ [void][W.U]::ShowWindow($k.MainWindowHandle,9); [void][W.U]::SetForegroundWindow($k.MainWindowHandle) } else { KioskStart }
+      Send $ctx '{"ok":true}'
+    } elseif($p -eq '/alarm/snooze'){ try{ if($global:snd){ $global:snd.Stop() } }catch{}; if($global:alarm){ ((Get-Date).AddMinutes(10).ToString('o')+'|'+$global:alarm.name+'|'+$global:alarm.hora) | Set-Content "$data\snooze.txt" -Encoding ASCII }; $global:alarm=$null; Send $ctx '{"ok":true}'
+    } elseif($p -eq '/alarm/stop'){ try{ if($global:snd){ $global:snd.Stop() } }catch{}; $global:alarm=$null; Send $ctx '{"ok":true}'
+    } elseif($p -eq '/alarm/state'){ if($global:alarm){ Send $ctx (ConvertTo-Json @{ringing=$true;name=$global:alarm.name;hora=$global:alarm.hora} -Compress) } else { Send $ctx '{"ringing":false}' }
+    } elseif($p -like '/play/*'){
+      $parts=$p.Substring(6) -split '/',2; $rn=$parts[0]; $rel=''; if($parts.Count -gt 1){ $rel=[uri]::UnescapeDataString($parts[1]) }
+      $base=Join-Path $env:USERPROFILE "Juegos\Fondal\$rn"; if(Test-Path (Join-Path $base "dist\index.html")){ $base=Join-Path $base "dist" }
+      if($rn -notmatch '^[A-Za-z0-9._-]+$' -or -not (Test-Path $base -PathType Container)){ $ctx.Response.StatusCode=404; Send $ctx '{}' }
+      elseif($parts.Count -eq 1){ $ctx.Response.Redirect("/play/$rn/"); $ctx.Response.Close() }
+      else {
+        if($rel -eq '' -or $rel.EndsWith('/')){ $rel+='index.html' }
+        $fp=[IO.Path]::GetFullPath((Join-Path $base ($rel -replace '/','\')))
+        if(-not $fp.StartsWith($base+'\') -or -not (Test-Path $fp -PathType Leaf)){ $ctx.Response.StatusCode=404; Send $ctx '{}' }
+        else {
+          $mt=@{'.html'='text/html; charset=utf-8';'.js'='text/javascript; charset=utf-8';'.mjs'='text/javascript; charset=utf-8';'.css'='text/css; charset=utf-8';'.json'='application/json';'.png'='image/png';'.jpg'='image/jpeg';'.jpeg'='image/jpeg';'.webp'='image/webp';'.gif'='image/gif';'.svg'='image/svg+xml';'.mp3'='audio/mpeg';'.ogg'='audio/ogg';'.wav'='audio/wav';'.wasm'='application/wasm';'.woff2'='font/woff2';'.woff'='font/woff';'.ttf'='font/ttf';'.glb'='model/gltf-binary';'.gltf'='model/gltf+json';'.webmanifest'='application/manifest+json';'.txt'='text/plain; charset=utf-8'}
+          $ext=[IO.Path]::GetExtension($fp).ToLower(); $ct=$mt[$ext]; if(-not $ct){ $ct='application/octet-stream' }
+          $b=[IO.File]::ReadAllBytes($fp); $ctx.Response.ContentType=$ct; $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close()
+        }
+      }
     } elseif($p -like '/art/*'){
       $ap=Join-Path "$root\art" ($p.Substring(5) -replace '/','\')
       if($ap -like "$root\art\*" -and $ap -notmatch '\.\.' -and (Test-Path $ap -PathType Leaf)){ $b=[IO.File]::ReadAllBytes($ap); $ctx.Response.ContentType=$(if($ap -match '\.png$'){'image/png'}else{'image/jpeg'}); $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() } else { $ctx.Response.StatusCode=404; Send $ctx '{}' }

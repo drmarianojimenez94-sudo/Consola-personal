@@ -45,7 +45,22 @@ function DoWeather{
        Save 'weather' @{city=$city;temp=$w.current.temperature_2m;feels=$w.current.apparent_temperature;code=$w.current.weather_code;wind=$w.current.wind_speed_10m;hum=$w.current.relative_humidity_2m;days=@(0..3|%{ @{max=$w.daily.temperature_2m_max[$_];min=$w.daily.temperature_2m_min[$_];code=$w.daily.weather_code[$_];rain=$w.daily.precipitation_probability_max[$_]} })} }catch{}
 }
 $tick=0
-while($true){
+$script:fired=@{}; $script:ringAt=$null
+function DoAlarms{
+  $now=Get-Date
+  if($script:ringAt -and ($now-$script:ringAt).TotalSeconds -gt 90){ try{ (New-Object Net.WebClient).DownloadString('http://127.0.0.1:8777/alarm/stop')|Out-Null }catch{}; $script:ringAt=$null }
+  $sn="$data\snooze.txt"; if(Test-Path $sn){ $q=(Get-Content $sn -Raw).Trim() -split '\|'; if([datetime]::Parse($q[0]) -le $now){ Remove-Item $sn -Force; $script:ringAt=$now; try{ (New-Object Net.WebClient).DownloadString('http://127.0.0.1:8777/alarm/ring?n='+[uri]::EscapeDataString($q[1])+'&h='+$q[2])|Out-Null }catch{} } }
+  $f="$env:USERPROFILE\Consultorio\alarmas.json"; if(-not (Test-Path $f)){ return }
+  $a=Get-Content $f -Raw -Encoding UTF8 | ConvertFrom-Json; $key=$now.ToString('yyyyMMddHHmm'); $hm=$now.ToString('HH:mm'); $dow=[int]$now.DayOfWeek
+  foreach($x in @($a)){
+    if(-not $x.activa -or $x.hora -ne $hm){ continue }
+    if(@($x.dias) -notcontains $dow){ continue }
+    if($script:fired[$x.id] -eq $key){ continue }
+    $script:fired[$x.id]=$key; $script:ringAt=$now
+    try{ (New-Object Net.WebClient).DownloadString('http://127.0.0.1:8777/alarm/ring?n='+[uri]::EscapeDataString([string]$x.nombre)+'&h='+$x.hora)|Out-Null }catch{}
+  }
+}while($true){
+  try{ DoAlarms }catch{}
   # si nadie mira el panel (hay un juego al frente), recolectar muy de vez en cuando
   try{ if(((Get-Date)-(Get-Item "$data\seen.txt" -ErrorAction Stop).LastWriteTime).TotalSeconds -gt 25){ Start-Sleep 25 } }catch{}
   try{ DoStats }catch{}

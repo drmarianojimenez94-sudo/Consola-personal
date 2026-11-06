@@ -17,7 +17,7 @@ $sites = @{
  'whatsapp'='https://web.whatsapp.com'; 'chatgpt'='https://chatgpt.com'; 'gemini'='https://gemini.google.com'
  'drive'='https://drive.google.com'; 'onedrive'='https://onedrive.live.com'; 'photos'='https://photos.google.com'
  'meet'='https://meet.google.com'; 'claudeweb'='https://claude.ai'; 'dolarhoy'='https://dolarhoy.com'; 'coingecko'='https://www.coingecko.com'
- 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
+ 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
 }
 # busquedas por voz: plataforma -> plantilla de URL (el texto se codifica; solo estos destinos)
 $search = @{

@@ -71,7 +71,7 @@ h2{margin:0 0 1.4vh;font-size:1.6vh;letter-spacing:.32em;color:var(--m);font-wei
 .node .lb{font-size:1.1vh;letter-spacing:.13em;margin-top:.5vh;opacity:.92}
 .node .cnt{position:absolute;top:10%;right:14%;font-size:1vh;background:var(--sc);color:#04050d;border-radius:1vh;padding:0 .35vw;font-weight:700}
 .n1{width:calc(var(--S)*.13);height:calc(var(--S)*.13)}.n1 .ic{font-size:3.6vh}.n1 .lb{font-size:1.3vh;white-space:normal;line-height:1.1;max-width:88%}
-.n2{width:calc(var(--S)*.135);height:calc(var(--S)*.135)}.n2 .ic{font-size:3.8vh}.n2 .lb{font-size:1.5vh}
+.n2{width:calc(var(--S)*.135);height:calc(var(--S)*.135)}.n2 .ic{font-size:3.8vh}.n2 .lb{font-size:1.5vh;white-space:normal;line-height:1.1;max-width:90%}
 .node .lb{font-weight:600;color:#eef6ff;letter-spacing:.05em}
 .node.in:not(.sel){opacity:.82;filter:saturate(.85)}
 .node::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,#ffffff40 50%,transparent 65%);transform:translateX(-130%);z-index:-1}
@@ -139,7 +139,7 @@ const go=k=>api('/launch/'+k),mode=m=>api('/mode/'+m),site=k=>api('/open/'+k);
 const L=(ic,lb,d,f,sc,alias=[])=>({ic,lb,d,f,sc,alias});
 const CATS=[
  {id:'juegos',ic:'◈',lb:'JUEGOS',sc:'#ff2bb4',d:'Tus juegos instalados',get items(){return[
-  ...GAMES.slice(0,10).map(g=>L('◈',g.name.toUpperCase().slice(0,12),'Jugar '+g.name+' ('+g.gb+' GB)',()=>api('/steamrun/'+g.id),'#8a6bff',[norm(g.name)]))]}},
+  ...GAMES.slice(0,10).map(g=>L('◈',g.name.toUpperCase().slice(0,22),'Jugar '+g.name+' ('+g.gb+' GB)',()=>api('/steamrun/'+g.id),'#8a6bff',[norm(g.name)]))]}},
  {id:'plat',ic:'▣',lb:'PLATAFORMAS',sc:'#66c0f4',d:'Steam, Battle.net, biblioteca y descargas',items:[
   L('♫','STEAM','Cliente de Steam',()=>go('steam'),'#66c0f4',['steam']),
   L('◉','BIG PICTURE','Consola de Steam a pantalla completa (apaga widgets)',()=>mode('games'),'#ff2bb4',['big picture','consola steam','modo consola','consola']),
@@ -155,11 +155,11 @@ const CATS=[
  {id:'musica',ic:'♫',lb:'MÚSICA',sc:'#1ed760',d:'YouTube Music (Premium), Spotify',items:[
   L('♫','YT MUSIC','YouTube Music con tu Premium (iniciar sesión una vez)',()=>site('ytmusic'),'#ff2bb4',['youtube music','musica','música','yt music']),
   L('♫','SPOTIFY','Spotify',()=>site('spotify'),'#1ed760',['spotify'])]},
- {id:'rend',ic:'▲',lb:'RENDIMIENTO',sc:'#4dff9d',d:'Tareas, sensores, estabilidad, fondos',items:[
+ {id:'rend',ic:'▲',lb:'MI PC',sc:'#4dff9d',d:'Tareas, sensores, estabilidad, fondos',items:[
   L('▲','TAREAS','Administrador de tareas',()=>go('taskmgr'),'#4dff9d',['tareas','administrador']),
   L('◎','SENSORES','HWiNFO: voltajes y temperaturas',()=>go('hwinfo'),'#ffb347',['sensores','hwinfo']),
   L('▤','REGISTROS','Carpeta de diagnóstico y cuelgues',()=>go('pcdiag'),'#ff5d7a',['registros','diagnostico','diagnóstico'])]},
- {id:'com',ic:'✉',lb:'COMUNICACIÓN',sc:'#4cc2ff',d:'Mail, contactos, calendario, WhatsApp',items:[
+ {id:'com',ic:'✉',lb:'MENSAJES',sc:'#4cc2ff',d:'Mail, contactos, calendario, WhatsApp',items:[
   L('✉','MAIL','Gmail',()=>site('gmail'),'#ea4335',['mail','correo','gmail']),L('☺','CONTACTOS','Contactos de Google',()=>site('contacts'),'#4cc2ff',['contactos']),
   L('▦','CALENDARIO','Google Calendar',()=>site('calendar'),'#4285f4',['calendario','agenda']),L('☎','WHATSAPP','WhatsApp Web',()=>site('whatsapp'),'#25d366',['whatsapp','wasap'])]},
  {id:'ia',ic:'✦',lb:'ASISTENTES',sc:'#ff9d6b',d:'Claude, ChatGPT, Gemini: preguntar',items:[
@@ -167,6 +167,13 @@ const CATS=[
   L('✨','GEMINI','Google Gemini',()=>site('gemini'),'#8ab4f8',['gemini'])]},
  {id:'nube',ic:'☁',lb:'NUBE',sc:'#8a6bff',d:'Drive, OneDrive, Fotos',items:[
   L('△','DRIVE','Google Drive',()=>site('drive'),'#fbbc04',['drive','nube']),L('☁','ONEDRIVE','OneDrive',()=>site('onedrive'),'#0a84ff',['onedrive']),L('✿','FOTOS','Google Fotos',()=>site('photos'),'#ea4335',['fotos'])]},
+ {id:'proy',ic:'⌘',lb:'PROYECTOS',sc:'#ffd24d',d:'Fondal Studios en GitHub',items:[
+  L('⚔','LA HORDA','Repositorio de La Horda (ARPG)',()=>site('gh-lahorda'),'#ff5d7a',['la horda','horda']),
+  L('◎','VORTEX','Repositorio de Vortex',()=>site('gh-vortex'),'#8a6bff',['vortex']),
+  L('✦','BOSTA CÓSMICA','Repositorio de Bosta Cósmica',()=>site('gh-bosta'),'#ff9d6b',['bosta cosmica','bosta']),
+  L('➤','FREE BIRDS','Repositorio de Free Birds',()=>site('gh-freebird'),'#4cc2ff',['free birds','free bird','freebird']),
+  L('◐','VIRTUAL PADEL','Repositorio de Virtual Padel',()=>site('gh-padel'),'#4dff9d',['virtual padel','padel']),
+  L('⌘','FONDAL STUDIOS','Organización en GitHub',()=>site('gh-org'),'#ffd24d',['fondal','fondal studios','github'])]},
  {id:'pac',ic:'✚',lb:'PACIENTES',sc:'#4dff9d',d:'Archivo de historias clínicas (carpeta local)',items:[
   L('▤','ARCHIVO','Abrir la carpeta de pacientes',()=>go('pacientes'),'#4dff9d',['pacientes','archivo de pacientes','historias clinicas']),
   L('✚','NUEVA HISTORIA','Crear una historia clínica nueva desde la plantilla',()=>go('nuevahc'),'#ff2bb4',['nueva historia','historia clinica nueva'])]},
@@ -249,8 +256,11 @@ const PLAT={youtube:['youtube','you tube','video','videos'],ytmusic:['youtube mu
 const FILL=/\b(reproduci|reproducime|reproducir|abrime|abri|abrir|poneme|pone|ponme|poner|quiero ver|quiero escuchar|mostrame|mostra|buscame|busca|buscar|el|la|los|las|un|una|de|del|en|por|favor|video|videos|pelicula|serie|cancion|musica|sobre|a|me)\b/g;
 async function inbox(){try{const a=await (await fetch('/inbox/pop')).json();a.forEach(t=>{lastIn=performance.now();if(t.indexOf('key:')===0){const f={left:()=>mv(-1,0),right:()=>mv(1,0),up:()=>mv(0,-1),down:()=>mv(0,1),ok:()=>press(),back:()=>back(),x:()=>listen(),y:()=>mode('desktop'),start:()=>mode('games'),b:()=>back(),lb:()=>mv(-1,0),rb:()=>mv(1,0)}[t.slice(4)];if(f)f()}else{say('\u{1F4F1} '+t,4500);command(t)}})}catch(e){}}
 setInterval(inbox,800);
-(async()=>{try{const i=await (await fetch('/info')).json();if(i.ip)$('ph').textContent='TEL: '+i.ip+':'+i.port+'  PIN '+i.pin}catch(e){}})();
+(async()=>{try{const i=await (await fetch('/info')).json();if(i.ip){window.__pin=i.pin;window.__tel=i.ip+':'+i.port;$('ph').textContent='TEL: '+window.__tel+'  PIN ******  (toca aqui o di vincular telefono)'}}catch(e){}})();
+function revealPin(){if(!window.__pin)return;$('ph').textContent='TEL: '+window.__tel+'  PIN '+window.__pin;clearTimeout(revealPin.t);revealPin.t=setTimeout(()=>{$('ph').textContent='TEL: '+window.__tel+'  PIN ******  (toca aqui o di vincular telefono)'},30000)}
+document.addEventListener('click',e=>{if(e.target.closest('#ph'))revealPin()});
 function command(raw){const t=norm(raw);
+ if(/vincular (el )?(telefono|celular)/.test(t)){revealPin();return}
  if(/(^| )(volver|atras|inicio)( |$)/.test(t)){back();return}
  if(/modo consola|modo juegos|big picture/.test(t)){mode('games');return}
  if(/modo escritorio|escritorio/.test(t)){mode('desktop');return}
@@ -264,7 +274,7 @@ function command(raw){const t=norm(raw);
   else if(/^(reproduci|reproducime|reproducir|poneme|pone|ponme|mostrame|buscame|busca|quiero ver|quiero escuchar)/.test(t)){const q=strip(t);if(q.length>1){say('→ youtube: '+q);api('/search/youtube?q='+encodeURIComponent(q));return}}}
  // buscar por alias en todo el catalogo (priorizando alias mas largos)
  const all=[...CATS.flatMap(c=>c.items.map(i=>({...i,cat:c.id}))),...CATS.map(c=>({lb:c.lb,alias:[c.lb.toLowerCase(),c.id],cat:null,openCat:c.id}))];
- let hit=null,len=0;all.forEach(i=>i.alias.forEach(a=>{const k=norm(a);if(k&&t.includes(k)&&k.length>len){len=k.length;hit=i}}));
+ let hit=null,len=0;all.forEach(i=>i.alias.forEach(a=>{const k=norm(a);if(k&&(" "+t+" ").includes(" "+k+" ")&&k.length>len){len=k.length;hit=i}}));
  if(hit){if(hit.openCat){openLevel(hit.openCat);say('→ '+hit.lb);return}hit.f();say('→ '+hit.lb);return}
  say('No entendí: "'+raw+'"',3500)}
 // ================= medidores =================

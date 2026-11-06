@@ -56,7 +56,7 @@ input.t{width:100%;margin-top:10px;padding:13px;border-radius:14px;border:1px so
 </details>
 <script>
 const $=id=>document.getElementById(id);
-let rem=(localStorage.getItem('rem')??'1')==='1';
+let rem=(localStorage.getItem('rem')??'0')==='1';
 let pin=(rem?localStorage.getItem('pin'):sessionStorage.getItem('pin'))||localStorage.getItem('pin')||'';
 function paintRem(){$('sw').classList.toggle('on',rem)}
 function toggleRem(){rem=!rem;localStorage.setItem('rem',rem?'1':'0');paintRem();if(pin){if(rem){localStorage.setItem('pin',pin)}else{localStorage.removeItem('pin');sessionStorage.setItem('pin',pin)}}vib(10)}

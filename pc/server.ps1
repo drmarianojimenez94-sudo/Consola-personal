@@ -17,7 +17,7 @@ $sites = @{
  'whatsapp'='https://web.whatsapp.com'; 'chatgpt'='https://chatgpt.com'; 'gemini'='https://gemini.google.com'
  'drive'='https://drive.google.com'; 'onedrive'='https://onedrive.live.com'; 'photos'='https://photos.google.com'
  'meet'='https://meet.google.com'; 'claudeweb'='https://claude.ai'; 'dolarhoy'='https://dolarhoy.com'; 'coingecko'='https://www.coingecko.com'
- 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
+ 'hc'='http://127.0.0.1:8777/hc.html'; 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
 }
 # busquedas por voz: plataforma -> plantilla de URL (el texto se codifica; solo estos destinos)
 $search = @{
@@ -79,6 +79,9 @@ $pinFile="$data\pin.txt"; if(-not (Test-Path $pinFile)){ (Get-Random -Minimum 10
 $inbox = New-Object System.Collections.ArrayList
 $l = New-Object System.Net.HttpListener
 $l.Prefixes.Add('http://127.0.0.1:8777/'); $l.Start()
+function PacFile{ "$env:USERPROFILE\Pacientes\pendientes.json" }
+function PacRead{ $f=PacFile; if(Test-Path $f){ try{ $x=(Get-Content $f -Raw -Encoding UTF8 | ConvertFrom-Json); foreach($i in $x){ $i } }catch{} } }
+function PacWrite($a){ New-Item -ItemType Directory -Force "$env:USERPROFILE\Pacientes" | Out-Null; [IO.File]::WriteAllText((PacFile),(ConvertTo-Json -InputObject @($a) -Depth 4),[Text.UTF8Encoding]::new($false)) }
 function Send($ctx,$body,$type='application/json'){ $b=[Text.Encoding]::UTF8.GetBytes($body); $ctx.Response.ContentType=$type; $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() }
 function SendFile($ctx,$name,$empty='null'){ $f="$data\$name.json"; if(Test-Path $f){ Send $ctx ([IO.File]::ReadAllText($f)) } else { Send $ctx $empty } }
 while($l.IsListening){
@@ -96,6 +99,20 @@ while($l.IsListening){
     } elseif($p -eq '/info'){ Send $ctx (@{ip=(GetIp);port=8443;pin=(Get-Content $pinFile -Raw).Trim()}|ConvertTo-Json -Compress)
     } elseif($p -eq '/inbox/push'){ $t=$ctx.Request.QueryString['t']; if($t -and $t.Length -lt 300 -and $inbox.Count -lt 20){ [void]$inbox.Add($t) }; Send $ctx '{"ok":true}'
     } elseif($p -eq '/inbox/pop'){ $o=@($inbox); $inbox.Clear(); Send $ctx (ConvertTo-Json @($o) -Compress)
+    } elseif($p -eq '/pacientes'){ $today=(Get-Date -f 'yyyy-MM-dd'); $o=@(PacRead | ? { $_.estado -eq 'pendiente' -and $_.fecha -le $today }); Send $ctx (ConvertTo-Json -InputObject $o -Depth 4 -Compress)
+    } elseif($p -eq '/pacientes/add'){ $n=$ctx.Request.QueryString['n']; $m=$ctx.Request.QueryString['m']; $h=$ctx.Request.QueryString['h']
+      if($n -and $n.Length -lt 80 -and (-not $m -or $m.Length -lt 200)){ $a=@(PacRead); $a+=[pscustomobject]@{id=[guid]::NewGuid().ToString('N').Substring(0,8);fecha=(Get-Date -f 'yyyy-MM-dd');hora=[string]$h;nombre=$n;motivo=[string]$m;estado='pendiente'}; PacWrite $a; Send $ctx '{"ok":true}' } else { $ctx.Response.StatusCode=400; Send $ctx '{"ok":false}' }
+    } elseif($p -eq '/hc/save' -and $ctx.Request.HttpMethod -eq 'POST'){
+      if($ctx.Request.ContentLength64 -gt 100KB){ $ctx.Response.StatusCode=413; Send $ctx '{"ok":false}' }
+      else { $sr=New-Object IO.StreamReader($ctx.Request.InputStream,[Text.Encoding]::UTF8); $d=$sr.ReadToEnd() | ConvertFrom-Json
+        $dir="$env:USERPROFILE\Pacientes\Historias"; New-Item -ItemType Directory -Force $dir | Out-Null
+        $ini=(([string]$d.nombre).Split(' ',[StringSplitOptions]::RemoveEmptyEntries) | % { $_.Substring(0,1).ToUpper() }) -join ''; if(-not $ini){ $ini='SN' }
+        $fn="$dir\"+(Get-Date -f 'yyyyMMdd_HHmm')+"_$($ini -replace '[^A-Z0-9]','').md"
+        $md="# Historia clinica`r`n`r`nFecha: "+(Get-Date -f 'yyyy-MM-dd HH:mm')+"`r`nPaciente: $($d.nombre)   Edad: $($d.edad)   Sexo: $($d.sexo)`r`n`r`n## Motivo de consulta`r`n$($d.motivo)`r`n`r`n## Enfermedad actual`r`n$($d.actual)`r`n`r`n## Antecedentes`r`n$($d.antecedentes)`r`n`r`n## Medicacion`r`n$($d.medicacion)`r`n`r`n## Examen fisico`r`n$($d.examen)`r`n`r`n## Diagnostico presuntivo`r`n$($d.diagnostico)`r`n`r`n## Plan`r`n$($d.plan)`r`n"
+        [IO.File]::WriteAllText($fn,$md,[Text.UTF8Encoding]::new($true))
+        if($d.id){ $a=@(PacRead); foreach($x in $a){ if($x.id -eq $d.id){ $x.estado='atendido' } }; PacWrite $a }
+        Send $ctx '{"ok":true}' }
+    } elseif($p -eq '/hc.html'){ Send $ctx ([IO.File]::ReadAllText("$root\hc.html",[Text.Encoding]::UTF8)) 'text/html; charset=utf-8'
     } elseif($p -eq '/dictado/new'){ $d="$env:USERPROFILE\Pacientes\Dictados"; New-Item -ItemType Directory -Force $d | Out-Null; $script:dict="$d\dictado_"+(Get-Date -f 'yyyyMMdd_HHmm')+'.txt'; Send $ctx '{"ok":true}'
     } elseif($p -eq '/dictado/append'){ $t=$ctx.Request.QueryString['t']; if($script:dict -and $t -and $t.Length -lt 800 -and ((Get-Item $script:dict -ErrorAction SilentlyContinue).Length -lt 200KB)){ Add-Content $script:dict $t -Encoding UTF8 }; Send $ctx '{"ok":true}'
     } elseif($p -like '/open/*'){

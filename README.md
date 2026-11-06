@@ -50,3 +50,6 @@ install/  install.ps1 / uninstall.ps1
 ## Ajustes opcionales
 - `pc/data/settings.json`: `{"kioskGpu": true}` activa la aceleración por GPU del panel (por defecto está desactivada para reducir carga y riesgo de cuelgues).
 - Categorías RECIENTES (automática), HOSPITAL y PACIENTES usan carpetas locales `Hospital` y `Pacientes` del perfil de usuario (no se suben al repositorio).
+
+## Pantalla principal
+El inicio es un tablero (reloj, pacientes pendientes del dia, sistema, finanzas, clima) con el boton ORBITALES para entrar a los menus. Los pacientes pendientes se leen de `Pacientes\pendientes.json` (fuera del repositorio) y la historia clinica se completa en `/hc.html`.

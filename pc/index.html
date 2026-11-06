@@ -53,9 +53,9 @@ h2{margin:0 0 1.4vh;font-size:1.6vh;letter-spacing:.32em;color:var(--m);font-wei
 @keyframes ln{to{stroke-dashoffset:0;opacity:.85}}@keyframes ln2{to{opacity:.5}}
 @keyframes spinr{to{rotate:360deg}}
 .orb{position:absolute;left:50%;top:50%;border-radius:50%;translate:-50% -50%;pointer-events:none;transform:rotate(var(--rr,0deg));transition:transform 1.1s cubic-bezier(.2,.8,.2,1),width .7s cubic-bezier(.2,.8,.2,1),height .7s cubic-bezier(.2,.8,.2,1)}
-.o1{width:41%;height:41%;border:1px dashed #00f5e060;animation:spinr 60s linear infinite;color:#00f5e099}
-.o2{width:80%;height:80%;border:1px solid #ff2bb455;animation:spinr 90s linear infinite reverse;color:#ff2bb499}
-.o3{width:96%;height:96%;border:1px dashed #8a6bff40;animation:spinr 140s linear infinite;color:#8a6bff99}
+.o1{width:28%;height:28%;border:1px dashed #00f5e060;animation:spinr 60s linear infinite;color:#00f5e099}
+.o2{width:56%;height:56%;border:1px solid #ff2bb455;animation:spinr 90s linear infinite reverse;color:#ff2bb499}
+.o3{width:84%;height:84%;border:1px dashed #8a6bff55;animation:spinr 140s linear infinite;color:#8a6bff99}
 .orb i{position:absolute;top:-.5vh;left:50%;width:1vh;height:1vh;margin-left:-.5vh;border-radius:50%;background:currentColor;box-shadow:0 0 12px 3px currentColor}
 .o1::after,.o2::after,.o3::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:2px solid transparent;border-top-color:currentColor}
 .core{position:absolute;left:50%;top:50%;width:27%;height:27%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#0a1030cc 40%,#070a1c99 100%);box-shadow:0 0 60px #00f5e033,inset 0 0 40px #8a6bff22;transition:box-shadow .4s}
@@ -70,8 +70,8 @@ h2{margin:0 0 1.4vh;font-size:1.6vh;letter-spacing:.32em;color:var(--m);font-wei
 .node .ic{font-size:3.2vh;line-height:1;color:var(--sc,#00f5e0);text-shadow:0 0 14px var(--sc,#00f5e0);font-weight:700}
 .node .lb{font-size:1.1vh;letter-spacing:.13em;margin-top:.5vh;opacity:.92}
 .node .cnt{position:absolute;top:10%;right:14%;font-size:1vh;background:var(--sc);color:#04050d;border-radius:1vh;padding:0 .35vw;font-weight:700}
-.n1{width:calc(var(--S)*.14);height:calc(var(--S)*.14)}.n1 .ic{font-size:3.6vh}.n1 .lb{font-size:1.6vh;white-space:normal;line-height:1.1;max-width:88%}
-.n2{width:calc(var(--S)*.15);height:calc(var(--S)*.15)}.n2 .ic{font-size:3.8vh}.n2 .lb{font-size:1.85vh;white-space:normal;line-height:1.1;max-width:90%}
+.n1{width:calc(var(--S)*.125);height:calc(var(--S)*.125)}.n1 .ic{font-size:3.6vh}.n1 .lb{font-size:1.6vh;white-space:normal;line-height:1.1;max-width:88%}
+.n2{width:calc(var(--S)*.13);height:calc(var(--S)*.13)}.n2 .ic{font-size:3.8vh}.n2 .lb{font-size:1.85vh;white-space:normal;line-height:1.1;max-width:90%}
 .node .lb{font-weight:600;color:#eef6ff;letter-spacing:.05em}
 .node.in:not(.sel){opacity:.82;filter:saturate(.85)}
 .node::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,#ffffff40 50%,transparent 65%);transform:translateX(-130%);z-index:-1}
@@ -117,7 +117,7 @@ h2{margin:0 0 1.4vh;font-size:1.6vh;letter-spacing:.32em;color:var(--m);font-wei
  </section>
 </aside>
 <main class="stage" id="stage">
- <div class="orb o2" id="o2"><i></i></div><div class="orb o1" id="o1"><i></i></div>
+ <div class="orb o3" id="o3"><i></i></div><div class="orb o2" id="o2"><i></i></div><div class="orb o1" id="o1"><i></i></div>
  <svg id="branch" viewBox="0 0 1000 1000" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:1"></svg>
  <div class="core" id="core">
   <svg viewBox="0 0 100 100">
@@ -205,20 +205,30 @@ const stage=$('stage');let N=[],sel=0,level='home';
 function place(list,ring,r,start){list.forEach((n,i)=>{n.ring=ring;n.r=r;n.a=start+i*360/list.length})}
 function build(){N=[];const home=level==='home';
  const ring1=home?[{...FIX.voz,a:270},{...FIX.desk,a:90}]:[{...FIX.voz,a:270},{...FIX.back,a:90}];
- ring1.forEach(n=>{n.ring=1;n.r=.205;N.push(n)});
- const items=home?CATS.filter(c=>{try{return (c.id==='juegos'&&!GAMESLOADED)||c.items.length>0}catch(e){return true}}).map(c=>({ic:c.ic,lb:c.lb,d:c.d,sc:c.sc,cnt:c.items.length,f:()=>openLevel(c.id),alias:[c.lb.toLowerCase(),c.id],cat:true})):CATS.find(c=>c.id===level).items.map(x=>({...x}));
- place(items,2,.40,-90+(items.length>=8?22.5:0));items.forEach(n=>N.push(n));
- // anillos fijos cuando hay pocos elementos: separar mas
+ ring1.forEach(n=>{n.ring=1;n.r=.14;N.push(n)});
+ const items=home?CATS.filter(c=>{try{return (c.id==='juegos'&&!GAMESLOADED)||c.items.length>0}catch(e){return true}}).map(c=>({ic:c.ic,lb:c.lb,d:c.d,sc:c.sc,cnt:c.items.length,f:()=>openLevel(c.id),alias:[c.lb.toLowerCase(),c.id],cat:true,id:c.id})):CATS.find(c=>c.id===level).items.map(x=>({...x}));
+ if(home){
+  // un orbital por grupo: ocio (anillo medio) y herramientas/trabajo (anillo exterior)
+  const OCIO=['rec','juegos','plat','streaming','musica','proy'];
+  const a=items.filter(n=>OCIO.includes(n.id)),b=items.filter(n=>!OCIO.includes(n.id));
+  place(a,2,.28,-90);place(b,3,.42,-90+180/Math.max(1,b.length));
+  a.concat(b).forEach(n=>N.push(n));
+ }else if(items.length>6){
+  // muchos elementos: dos orbitales concentricos
+  const k=Math.ceil(items.length/2),a=items.slice(0,k),b=items.slice(k);
+  place(a,2,.28,-90);place(b,3,.42,-90+180/b.length);
+  a.concat(b).forEach(n=>N.push(n));
+ }else{place(items,2,.33,-90);items.forEach(n=>N.push(n))}
  }
 let orig=[50,50],rr=0,prevSel=-1,brT=null;const BG={tx:0,ty:0,cx:0,cy:0};
 function clearBranch(){clearTimeout(brT);$('branch').innerHTML='';stage.querySelectorAll('.star').forEach(e=>e.remove())}
 function render(selIdx){clearBranch();stage.querySelectorAll('.node,.beam').forEach(e=>e.remove());build();
- N.forEach((n,i)=>{const b=document.createElement('button');b.className='node n'+n.ring;b.style.setProperty('--sc',n.sc);b.style.left=orig[0]+'%';b.style.top=orig[1]+'%';{const rd=n.a*Math.PI/180;n.px=50+Math.cos(rd)*n.r*100;n.py=50+Math.sin(rd)*n.r*100}
+ N.forEach((n,i)=>{const b=document.createElement('button');b.className='node n'+(n.ring===1?1:2);b.style.setProperty('--sc',n.sc);b.style.left=orig[0]+'%';b.style.top=orig[1]+'%';{const rd=n.a*Math.PI/180;n.px=50+Math.cos(rd)*n.r*100;n.py=50+Math.sin(rd)*n.r*100}
   b.innerHTML='<div class="ic">'+n.ic+'</div><div class="lb">'+n.lb+'</div>'+(n.cnt?'<span class="cnt">'+n.cnt+'</span>':'');
   b.onclick=()=>{if(n.confirm&&!n._armed){n._armed=true;say('Toca ENTRAR otra vez para abrir: '+n.lb,4500);setTimeout(()=>{n._armed=false},5000);return}rememberRecent(n);n.f()};b.onmouseenter=()=>{sel=i;hl()};n.el=b;stage.appendChild(b);
   const bm=document.createElement('div');bm.className='beam';n.beam=bm;
   setTimeout(()=>{const rad=n.a*Math.PI/180;b.style.transitionDelay=(i*28)+'ms,'+(i*28)+'ms,'+(i*28)+'ms,'+(i*28)+'ms';b.style.left=50+Math.cos(rad)*n.r*100+'%';b.style.top=50+Math.sin(rad)*n.r*100+'%';b.classList.add('in');setTimeout(()=>b.style.transitionDelay='0ms',900);setTimeout(()=>b.classList.add('free'),1100+i*30)},40)});
- sel=selIdx!=null?selIdx:N.findIndex(n=>n.ring===2);hl();
+ sel=selIdx!=null?selIdx:N.findIndex(n=>n.ring>=2);hl();
  $('crumb').textContent=level==='home'?'INICIO':'INICIO  ›  '+CATS.find(c=>c.id===level).lb;
  }
 function openLevel(id){beep(560);const prevCat=level!=='home'?CATS.findIndex(c=>c.id===level):-1;orig=(id!=='home'&&N[sel]&&N[sel].px!=null)?[N[sel].px,N[sel].py]:[50,50];level=id;
@@ -230,12 +240,12 @@ function hl(){N.forEach((n,i)=>n.el&&n.el.classList.toggle('sel',i===sel));const
  // la escena se desplaza hacia lo seleccionado y los anillos giran un paso
  const rd=n.a*Math.PI/180,vx=Math.cos(rd)*n.r,vy=Math.sin(rd)*n.r;
  stage.style.setProperty('--tx',(-vx*11)+'vh');stage.style.setProperty('--ty',(-vy*9)+'vh');BG.tx=-vx*40;BG.ty=-vy*40;
- if(sel!==prevSel){rr+=9;$('o1').style.setProperty('--rr',rr+'deg');$('o2').style.setProperty('--rr',(-rr*.7)+'deg');prevSel=sel}
+ if(sel!==prevSel){rr+=9;$('o1').style.setProperty('--rr',rr+'deg');$('o2').style.setProperty('--rr',(-rr*.7)+'deg');$('o3').style.setProperty('--rr',(rr*.45)+'deg');prevSel=sel}
  showBranch()}
 // ramas de estrellas: al enfocar una categoria brotan sus elementos como una constelacion
 function showBranch(){clearTimeout(brT);brT=setTimeout(()=>{const sv=$('branch');sv.innerHTML='';stage.querySelectorAll('.star').forEach(e=>e.remove());
  const n=N[sel];if(!n||level!=='home'||!n.cat)return;const cat=CATS.find(c=>c.lb===n.lb);if(!cat)return;
- const k=cat.items.length,rad=n.a*Math.PI/180,bx=500+Math.cos(rad)*n.r*1000,by=500+Math.sin(rad)*n.r*1000,spread=Math.min(140,k*26)*Math.PI/180;let pv=null;
+ const k=cat.items.length,rad0=n.a*Math.PI/180,rad=n.ring===3?rad0+Math.PI:rad0,bx=500+Math.cos(rad0)*n.r*1000,by=500+Math.sin(rad0)*n.r*1000,spread=Math.min(140,k*26)*Math.PI/180;let pv=null;
  const mk=(t,a)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const q in a)e.setAttribute(q,a[q]);return e};
  cat.items.forEach((it,i)=>{const ang=rad+(k>1?(i/(k-1)-.5)*spread:0),d=140+(i%2)*50,x=bx+Math.cos(ang)*d,y=by+Math.sin(ang)*d;
   const l=mk('line',{x1:bx,y1:by,x2:x,y2:y,stroke:it.sc,class:'bl'});l.style.color=it.sc;l.style.animationDelay=(i*60)+'ms';sv.appendChild(l);
@@ -351,11 +361,12 @@ if(location.hash.length>1){setTimeout(()=>{try{openLevel(location.hash.slice(1))
 // los anillos giran solos como una galaxia cuando no se toca nada; al tocar, se detienen
 let lastIn=performance.now(),spin=0,lastT=performance.now(),spinning=false;
 ['keydown','pointerdown','pointermove'].forEach(ev=>addEventListener(ev,()=>{lastIn=performance.now()}));
-function spinLoop(){const t=performance.now(),dt=Math.min(.2,(t-lastT)/1000);lastT=t;
+const SPD={1:-4,2:2.6,3:-1.7};
+function spinLoop(now){requestAnimationFrame(spinLoop);const t=performance.now();if(t-lastT<33)return;const dt=Math.min(.2,(t-lastT)/1000);lastT=t;
  if(t-lastIn>5000){if(!spinning){spinning=true;clearBranch()}spin+=dt;
-  N.forEach(n=>{if(!n.el||!n.el.classList.contains('free')||n.ring===0)return;const a=n.a+(n.ring===2?spin*2.2:-spin*3.2),rd=a*Math.PI/180;n.px=50+Math.cos(rd)*n.r*100;n.py=50+Math.sin(rd)*n.r*100;n.el.style.left=n.px+'%';n.el.style.top=n.py+'%'})}
- else if(spinning){spinning=false;N.forEach(n=>{if(n.ring)n.a+=(n.ring===2?spin*2.2:-spin*3.2)});spin=0;hl()}}
-setInterval(spinLoop,100);
+  N.forEach(n=>{if(!n.el||!n.el.classList.contains('free')||!n.ring)return;const a=n.a+spin*SPD[n.ring],rd=a*Math.PI/180;n.px=50+Math.cos(rd)*n.r*100;n.py=50+Math.sin(rd)*n.r*100;n.el.style.left=n.px+'%';n.el.style.top=n.py+'%'})}
+ else if(spinning){spinning=false;N.forEach(n=>{if(n.ring)n.a+=spin*SPD[n.ring]});spin=0;hl()}}
+requestAnimationFrame(spinLoop);
 // ===== fondo: universo con galaxia en espiral, nebulosas, estrellas con parallax, constelaciones y estrellas fugaces =====
 // ===== fondo: universo realista. Nebulosa y galaxia se generan UNA vez con ruido fractal (fbm) y luego solo se rotan/desplazan (barato) =====
 if(location.search.includes('static')){const st=document.createElement('style');st.textContent='*{animation:none!important;transition:none!important}';document.head.appendChild(st)}

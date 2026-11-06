@@ -18,6 +18,13 @@ td{padding:.25vh .2vw;border-top:1px solid #ffffff10}td input,td select{width:10
 #msg{color:#4dff9d;margin-left:1vw}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:2vw}
 @media(max-width:900px){.kp{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
+@font-face{font-family:PS;src:url(/fonts/pressstart.woff2)}@font-face{font-family:VT;src:url(/fonts/vt323.woff2)}
+:root{--c:#00f5e0;--m:#ff2bb4;--line:rgba(0,245,224,.4)}
+body{background:#05040f;font:3.2vh/1.15 VT,monospace;color:#e6fffb}
+h1,h2,th,.k small{font-family:PS,monospace;font-weight:400}h1{font-size:2.6vh}h2{font-size:1.5vh}th{font-size:1.3vh}.k small{font-size:1.2vh}
+.k b{font:500 6vh VT,monospace}.k{border-radius:0;border:.4vh solid var(--c);background:#0a0820}
+button,input,select{font:inherit;border-radius:0;border-width:.3vh;background:#0b0820}input,select{color:#fff}
+button:focus,input:focus,select:focus{outline:.4vh solid var(--m)}
 </style></head><body>
 <h1>CUENTAS Y <span>PENDIENTES</span> <span id="msg"></span></h1>
 <div class="row" style="margin:0 0 1vh"><label class="dim">Mes&nbsp;</label><input type="month" id="mes"><button id="csv">Exportar a Excel (CSV)</button><button id="mp">Abrir Mercado Pago</button></div>
@@ -53,4 +60,5 @@ $('mes').onchange=draw;$('mp').onclick=()=>fetch('/open/mercadopago');
 $('csv').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"',m=$('mes').value,l=[['Fecha','Tipo','Concepto','Categoria','Monto'].map(q).join(';')].concat(F.movimientos.filter(x=>(x.fecha||'').startsWith(m)).map(x=>[x.fecha,x.tipo,x.concepto,x.categoria,x.monto].map(q).join(';')));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+l.join('\r\n')],{type:'text/csv'}));a.download='movimientos_'+m+'.csv';a.click()};
 load();
+addEventListener('keydown',e=>{if(e.key==='Escape')parent.postMessage('close','*')});
 </script></body></html>

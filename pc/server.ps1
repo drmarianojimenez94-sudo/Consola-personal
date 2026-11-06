@@ -17,7 +17,7 @@ $sites = @{
  'whatsapp'='https://web.whatsapp.com'; 'chatgpt'='https://chatgpt.com'; 'gemini'='https://gemini.google.com'
  'drive'='https://drive.google.com'; 'onedrive'='https://onedrive.live.com'; 'photos'='https://photos.google.com'
  'meet'='https://meet.google.com'; 'claudeweb'='https://claude.ai'; 'dolarhoy'='https://dolarhoy.com'; 'coingecko'='https://www.coingecko.com'
- 'hc'='http://127.0.0.1:8777/hc.html'; 'planilla'='http://127.0.0.1:8777/pacientes.html'; 'cuentas'='http://127.0.0.1:8777/finanzas.html'; 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
+ 'cuentas'='http://127.0.0.1:8777/finanzas.html'; 'gh-lahorda'='https://github.com/Fondal-Studios/La-Horda'; 'gh-vortex'='https://github.com/Fondal-Studios/Vortex'; 'gh-bosta'='https://github.com/Fondal-Studios/Bosta-Cosmica'; 'gh-freebird'='https://github.com/Fondal-Studios/FreeBird'; 'gh-padel'='https://github.com/Fondal-Studios/Virtual-Padel'; 'gh-org'='https://github.com/Fondal-Studios'; 'mercadopago'='https://www.mercadopago.com.ar'; 'mercadolibre'='https://www.mercadolibre.com.ar'
 }
 # busquedas por voz: plataforma -> plantilla de URL (el texto se codifica; solo estos destinos)
 $search = @{
@@ -116,7 +116,7 @@ while($l.IsListening){
         $md="# Historia clinica`r`n`r`nFecha: "+(Get-Date -f 'yyyy-MM-dd HH:mm')+"`r`nPaciente: $($d.nombre)   Edad: $($d.edad)   Sexo: $($d.sexo)`r`n`r`n## Motivo de consulta`r`n$($d.motivo)`r`n`r`n## Enfermedad actual`r`n$($d.actual)`r`n`r`n## Antecedentes`r`n$($d.antecedentes)`r`n`r`n## Medicacion`r`n$($d.medicacion)`r`n`r`n## Examen fisico`r`n$($d.examen)`r`n`r`n## Diagnostico presuntivo`r`n$($d.diagnostico)`r`n`r`n## Plan`r`n$($d.plan)`r`n"
         [IO.File]::WriteAllText($fn,$md,[Text.UTF8Encoding]::new($true))
         Send $ctx ('{"ok":true,"archivo":"'+(Split-Path $fn -Leaf)+'"}') }
-    } elseif($p -in '/hc.html','/pacientes.html','/finanzas.html'){ Send $ctx ([IO.File]::ReadAllText("$root$p",[Text.Encoding]::UTF8)) 'text/html; charset=utf-8'
+    } elseif($p -in '/finanzas.html'){ Send $ctx ([IO.File]::ReadAllText("$root$p",[Text.Encoding]::UTF8)) 'text/html; charset=utf-8'
     } elseif($p -eq '/dictado/new'){ $d="$env:USERPROFILE\Pacientes\Dictados"; New-Item -ItemType Directory -Force $d | Out-Null; $script:dict="$d\dictado_"+(Get-Date -f 'yyyyMMdd_HHmm')+'.txt'; Send $ctx '{"ok":true}'
     } elseif($p -eq '/dictado/append'){ $t=$ctx.Request.QueryString['t']; if($script:dict -and $t -and $t.Length -lt 800 -and ((Get-Item $script:dict -ErrorAction SilentlyContinue).Length -lt 200KB)){ Add-Content $script:dict $t -Encoding UTF8 }; Send $ctx '{"ok":true}'
     } elseif($p -like '/open/*'){

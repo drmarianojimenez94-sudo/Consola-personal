@@ -52,4 +52,4 @@ install/  install.ps1 / uninstall.ps1
 - Categorías RECIENTES (automática), HOSPITAL y PACIENTES usan carpetas locales `Hospital` y `Pacientes` del perfil de usuario (no se suben al repositorio).
 
 ## Pantalla principal
-El inicio es un tablero (reloj, pacientes pendientes del dia, sistema, finanzas, clima) con el boton ORBITALES para entrar a los menus. Los pacientes pendientes se leen de `Pacientes\pendientes.json` (fuera del repositorio) y la historia clinica se completa en `/hc.html`.
+La pantalla es un panel de finanzas retro (pixel art, estilo La Horda): ganado/gastado/resultado, cuentas y fondos y pendientes (datos en `%USERPROFILE%\Consultorio`, fuera del repo). Joystick: D-pad/stick mover, A elegir, B volver, Guia = volver al panel desde un juego.

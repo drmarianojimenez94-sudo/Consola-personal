@@ -73,6 +73,7 @@ while ($true) {
     $ry = [int][Pad]::RY
     $mouseCnt++
     if ([Math]::Abs($ry) -gt 9000 -and ($mouseCnt % 3) -eq 0) { [Pad]::mouse_event(0x800,0,0,[int]([Math]::Sign($ry) * [Math]::Pow(([Math]::Abs($ry) - 9000) / 23767.0, 1.5) * 120),[UIntPtr]::Zero) }
+    if ((($b -band 0x20) -ne 0) -and (($prevB -band 0x20) -eq 0)) { $fire = $true }  # Select -> volver al modo consola
     $aNow = ($b -band 0x1000) -ne 0; $bNow = ($b -band 0x2000) -ne 0
     if ($aNow -and -not $aDown) { [Pad]::mouse_event(2,0,0,0,[UIntPtr]::Zero); $aDown = $true } elseif (-not $aNow -and $aDown) { [Pad]::mouse_event(4,0,0,0,[UIntPtr]::Zero); $aDown = $false }
     if ($bNow -and -not $bDown) { [Pad]::mouse_event(8,0,0,0,[UIntPtr]::Zero); $bDown = $true } elseif (-not $bNow -and $bDown) { [Pad]::mouse_event(16,0,0,0,[UIntPtr]::Zero); $bDown = $false }

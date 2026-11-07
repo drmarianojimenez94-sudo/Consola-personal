@@ -58,7 +58,41 @@ nav{display:grid;grid-template-columns:repeat(8,1fr);gap:.9vw}
 .bk,#bk{font:2.4vh PS,monospace;color:#2a0f06;background:var(--g);border:.4vh solid #fff;padding:1.2vh 1.6vw;cursor:pointer}#bk:hover{filter:brightness(1.15)}.card:hover{border-color:var(--g)}.ct,.it{cursor:pointer}.obar{display:flex;cursor:pointer;justify-content:space-between;padding:1.4vh 1.4vw;font:1.8vh PS,monospace;background:var(--g);color:#2a0f06}
 #ov{inset:2vh 2.5vw;border:.5vh solid var(--g);display:flex;flex-direction:column;background:#07040a}
 #fr{flex:1;border:0;background:#07040a}
-</style></head><body>
+/* ===== REDISEÑO: chibi-retro futurista (se apoya en los sprites pixel, el resto es liso, redondeado y luminoso) ===== */
+@font-face{font-family:PS;src:local('Bahnschrift SemiBold'),local('Bahnschrift'),local('Segoe UI Semibold')}
+@font-face{font-family:VT;src:local('Bahnschrift SemiCondensed'),local('Bahnschrift'),local('Segoe UI')}
+:root{--glass:rgba(12,16,34,.55);--line:rgba(255,255,255,.16)}
+body{font-weight:500;letter-spacing:.01em}
+#bgi{image-rendering:auto}
+#shade{background:radial-gradient(120% 90% at 50% 0%,rgba(0,0,0,0) 30%,rgba(3,5,14,.55) 100%),linear-gradient(180deg,rgba(6,8,22,.15),rgba(6,8,22,.55))}
+#scan{background:none}
+.ttl b{font:700 5.6vh PS,sans-serif;letter-spacing:.12em;background:linear-gradient(90deg,#fff,var(--g) 60%,var(--a));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 1.2vh var(--a))}
+.ttl small{font:600 2.6vh PS,sans-serif;letter-spacing:.5em;color:var(--a);opacity:1}
+#clk{font:300 11vh/.85 VT,sans-serif;text-shadow:0 0 2.4vh var(--a)}
+#dt{font-weight:600;letter-spacing:.08em}
+.box,.card,.ct,.it{clip-path:none;border-radius:2.2vh;border:.22vh solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(1.4vh) saturate(1.3);backdrop-filter:blur(1.4vh) saturate(1.3);box-shadow:0 1vh 3vh rgba(0,0,0,.35),inset 0 .2vh 0 rgba(255,255,255,.14)}
+.box h2{font:700 2.3vh PS,sans-serif;letter-spacing:.28em;color:var(--a)}
+.card{border-radius:2.6vh;transition:transform .25s,box-shadow .25s,background .25s}
+.card img{filter:drop-shadow(0 .8vh .6vh rgba(0,0,0,.55)) drop-shadow(0 0 1.4vh var(--a))}
+.card b{font:700 2.6vh PS,sans-serif;letter-spacing:.1em;color:#fff}
+.card small{color:#cfd8ff}
+.card.on{background:linear-gradient(160deg,var(--g),var(--a));border-color:#fff;transform:translateY(-1.2vh);box-shadow:0 0 0 .3vh #fff,0 0 4vh var(--a),0 1.6vh 3vh rgba(0,0,0,.5)}
+.card.on b,.card.on small{color:#10142a}
+.tag{border-radius:1vh;font:700 2.2vh PS,sans-serif}
+.r{border-bottom:.2vh solid rgba(255,255,255,.1)}
+.mt i{border-radius:1vh;overflow:hidden;background:rgba(255,255,255,.1)}.mt u{background:linear-gradient(90deg,var(--b),var(--a));border-radius:1vh}
+.mt b,.fc b,.kpi small{font-family:PS,sans-serif;color:var(--a)}
+#sc,#ov{background:radial-gradient(100% 80% at 70% 0%,#161c3c,#070914 70%)}
+#sct b{font:700 4.8vh PS,sans-serif;letter-spacing:.1em;color:#fff;text-shadow:0 0 2vh var(--a)}
+.ct{font:700 3.1vh PS,sans-serif;letter-spacing:.08em;color:#fff}
+.it{font-weight:600}
+.ct.sel,.it.sel{border-color:var(--a)}
+.ct.sel.foc,.it.sel.foc{background:linear-gradient(100deg,var(--g),var(--a));color:#10142a;border-color:#fff;box-shadow:0 0 0 .3vh #fff,0 0 3.4vh var(--a)}
+#toast{border-radius:3vh;background:linear-gradient(100deg,var(--g),var(--a));color:#10142a;border:0;font:700 2.8vh PS,sans-serif}
+.bk,#bk,.obar{border-radius:3vh;border:0;background:linear-gradient(100deg,var(--g),var(--a));color:#10142a;font:700 2.8vh PS,sans-serif}
+#ov{border-radius:2.6vh;border:.25vh solid var(--a);box-shadow:0 0 5vh rgba(0,0,0,.6),0 0 3vh var(--a)}
+#al{background:radial-gradient(circle,#3a0c1c,#10040a)}#al b{font:700 8vh PS,sans-serif;text-shadow:0 0 3vh var(--a);color:#fff}
+.hp{border-radius:1vh;overflow:hidden}</style></head><body>
 <img id="bgi" alt=""><div id="shade"></div><div id="scan"></div>
 <main>
  <header><div class="ttl"><b>LA HORDA</b><small>CONSOLA DE MANDO</small></div>
@@ -113,14 +147,17 @@ function tintCheck(){const d=new Date(),hr=window.__hr!=null?window.__hr:d.getHo
  const rt=document.documentElement.style;rt.setProperty('--a','hsl('+acc+',95%,62%)');rt.setProperty('--b','hsl('+(acc+25)+',95%,60%)');
  $('bgi').src=sober((rain||t<18)?'ice':'forest');$('bgi').style.filter=(!rain&&t>=28)?'hue-rotate(-75deg) saturate(1.15)':(night?'brightness(.85)':'none')}
 /* fondo sobrio: suelo de arena vacia (losas + anillo), sin personajes */
-const SOB={};function sober(kind){if(SOB[kind])return SOB[kind];const c=document.createElement('canvas');c.width=320;c.height=140;const g=c.getContext('2d'),ice=kind==='ice',h=ice?212:140,rnd=(()=>{let s=7;return()=>(s=s*16807%2147483647)/2147483647})();
- g.fillStyle='hsl('+h+',30%,7%)';g.fillRect(0,0,320,140);
- for(let y=0;y<140;y+=14)for(let x=((y/14)%2)*10-10;x<320;x+=20){const l=7+rnd()*4;g.fillStyle='hsl('+h+',26%,'+l+'%)';g.fillRect(x+1,y+1,18,12)}
- g.strokeStyle='hsla('+h+',35%,30%,.35)';g.lineWidth=2;g.beginPath();g.ellipse(160,72,120,50,0,0,7);g.stroke();g.strokeStyle='hsla('+h+',35%,30%,.18)';g.beginPath();g.ellipse(160,72,84,34,0,0,7);g.stroke();
- for(let i=0;i<8;i++){const a=i*Math.PI/4+.4;g.fillStyle='hsla('+h+',50%,45%,.4)';g.fillRect(160+Math.cos(a)*120-1,72+Math.sin(a)*50-1,3,3)}
- const v=g.createRadialGradient(160,70,30,160,70,190);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.65)');g.fillStyle=v;g.fillRect(0,0,320,140);
- return SOB[kind]=c.toDataURL()}
-/* ---------- menu ---------- */
+const SOB={};function sober(kind){if(SOB[kind])return SOB[kind];const W=960,Hh=420,c=document.createElement('canvas');c.width=W;c.height=Hh;const g=c.getContext('2d'),ice=kind==='ice',h=ice?214:150;
+ const bgG=g.createLinearGradient(0,0,0,Hh);bgG.addColorStop(0,'hsl('+(h+40)+',55%,9%)');bgG.addColorStop(1,'hsl('+h+',50%,5%)');g.fillStyle=bgG;g.fillRect(0,0,W,Hh);
+ /* suelo en perspectiva: rejilla luminosa */
+ const hz=Hh*.52;g.save();g.beginPath();g.rect(0,hz,W,Hh-hz);g.clip();g.strokeStyle='hsla('+h+',90%,62%,.28)';g.lineWidth=1.2;
+ for(let i=-24;i<=24;i++){g.beginPath();g.moveTo(W/2+i*18,hz);g.lineTo(W/2+i*95,Hh);g.stroke()}
+ for(let j=1;j<=12;j++){const y=hz+Math.pow(j/12,2.1)*(Hh-hz);g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}g.restore();
+ /* halo del horizonte y anillo de arena */
+ const hg=g.createRadialGradient(W/2,hz,10,W/2,hz,W*.55);hg.addColorStop(0,'hsla('+h+',95%,60%,.38)');hg.addColorStop(1,'hsla('+h+',95%,60%,0)');g.fillStyle=hg;g.fillRect(0,0,W,Hh);
+ g.strokeStyle='hsla('+h+',95%,70%,.45)';g.lineWidth=2.5;g.beginPath();g.ellipse(W/2,Hh*.74,300,62,0,0,7);g.stroke();g.strokeStyle='hsla('+h+',95%,70%,.2)';g.beginPath();g.ellipse(W/2,Hh*.74,210,40,0,0,7);g.stroke();
+ let s=11;const rnd=()=>(s=s*16807%2147483647)/2147483647;for(let i=0;i<70;i++){g.fillStyle='hsla('+h+',90%,85%,'+(.15+rnd()*.5)+')';const r=rnd()*1.6+.4;g.beginPath();g.arc(rnd()*W,rnd()*hz,r,0,7);g.fill()}
+ return SOB[kind]=c.toDataURL('image/jpeg',.88)}/* ---------- menu ---------- */
 const CAT=[['ACCION Y COOP','axiom',/left 4 dead|l4d|doom|halo|borderlands|payday|helldivers|warframe|deep rock|gears|call of duty|battlefield|counter-strike|apex|overwatch/i],
  ['TERROR','nano_gm',/phasmo|resident evil|outlast|dead space|alien|silent hill|fears to fathom|dying light|until dawn/i],
  ['ESTRATEGIA','mago',/age of|civilization|total war|starcraft|warcraft|stellaris|crusader|xcom|company of heroes|anno|they are billions/i],

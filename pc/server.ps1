@@ -80,7 +80,7 @@ $inbox = New-Object System.Collections.ArrayList
 $l = New-Object System.Net.HttpListener
 $l.Prefixes.Add('http://127.0.0.1:8777/'); $l.Start()
 # datos del consultorio: JSON en %USERPROFILE%\Consultorio (fuera del repositorio), con copia de seguridad rotativa
-$ConsDir="$env:USERPROFILE\Consultorio"; $ConsNames='pacientes','finanzas','tareas','alarmas'
+$ConsDir="$env:USERPROFILE\Consultorio"; $ConsNames='pacientes','finanzas','tareas','alarmas','avisos'
 function ConsRead($n){ $f="$ConsDir\$n.json"; if(Test-Path $f){ [IO.File]::ReadAllText($f,[Text.Encoding]::UTF8) } elseif($n -eq 'finanzas'){ '{"saldos":[],"movimientos":[]}' } else { '[]' } }
 function ConsWrite($n,$json){ New-Item -ItemType Directory -Force "$ConsDir\backup" | Out-Null; $f="$ConsDir\$n.json"; if(Test-Path $f){ Copy-Item $f "$ConsDir\backup\$n.json" -Force }; [IO.File]::WriteAllText($f,$json,[Text.UTF8Encoding]::new($false)) }
 function Send($ctx,$body,$type='application/json'){ $b=[Text.Encoding]::UTF8.GetBytes($body); $ctx.Response.ContentType=$type; $ctx.Response.ContentLength64=$b.Length; $ctx.Response.OutputStream.Write($b,0,$b.Length); $ctx.Response.Close() }

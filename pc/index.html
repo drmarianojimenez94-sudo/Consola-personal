@@ -81,9 +81,9 @@ const ymd=()=>new Date().toLocaleDateString('sv-SE'),fm=n=>'$'+Math.round(Number
 const arr=x=>Array.isArray(x)?x:(x&&Array.isArray(x.value)?x.value:[]);
 const hero=n=>'/art/codex/'+n+'.png';
 /* ---------- finanzas ---------- */
-let FZ={saldos:[],movimientos:[]},TA=[],AL=[],SIG='',PAC=0,PACS=[];
-async function load(){if(paused())return;try{const [f,t,al,pa]=await Promise.all([fetch('/data/finanzas').then(r=>r.json()),fetch('/data/tareas').then(r=>r.json()),fetch('/data/alarmas').then(r=>r.json()),fetch('/data/pacientes').then(r=>r.json()).catch(()=>[])]);
- const s=JSON.stringify([f,t,al,pa,ymd()]);AL=arr(al);PACS=arr(pa).filter(p=>p.estado==='pendiente'&&(p.fecha||'')<=ymd());PAC=PACS.length;if(s===SIG)return;SIG=s;FZ=f||{};FZ.saldos=arr(FZ.saldos);FZ.movimientos=arr(FZ.movimientos);TA=arr(t);draw();buildHome()}catch(e){}}
+let FZ={saldos:[],movimientos:[]},TA=[],AL=[],SIG='',PAC=0,PACS=[],AV=null;
+async function load(){if(paused())return;try{const [f,t,al,pa,av]=await Promise.all([fetch('/data/finanzas').then(r=>r.json()),fetch('/data/tareas').then(r=>r.json()),fetch('/data/alarmas').then(r=>r.json()),fetch('/data/pacientes').then(r=>r.json()).catch(()=>[]),fetch('/data/avisos').then(r=>r.json()).catch(()=>({}))]);
+ const s=JSON.stringify([f,t,al,pa,av,ymd()]);AV=av&&av.mail?av:null;AL=arr(al);PACS=arr(pa).filter(p=>p.estado==='pendiente'&&(p.fecha||'')<=ymd());PAC=PACS.length;if(s===SIG)return;SIG=s;FZ=f||{};FZ.saldos=arr(FZ.saldos);FZ.movimientos=arr(FZ.movimientos);TA=arr(t);draw();buildHome()}catch(e){}}
 function dueTxt(v){if(!v)return['',''];const d=Math.round((new Date(v+'T00:00:00')-new Date(ymd()+'T00:00:00'))/864e5);
  return d<0?['VENCIDO','dn']:d===0?['HOY','dn']:d===1?['MAÑANA','cy']:[v.slice(8)+'/'+v.slice(5,7),'dim']}
 const ini=n=>String(n||'').split(/\s+/).filter(Boolean).map(w=>w[0].toUpperCase()+'.').join('');
@@ -98,6 +98,7 @@ const alTxt=x=>(x.t.toDateString()===new Date().toDateString()?'hoy ':(x.t.toDat
 function hoy(){const w=WX,n=nextAl();let h='';
  if(w){h+='<div class="r tot"><span class="n">'+Math.round(w.temp)+'° '+wc(w.code)+'</span><span class="dim" style="font-size:3.4vh">viento '+Math.round(w.wind)+' km/h</span></div><div class="fc">'+(w.days||[]).slice(0,4).map((d,i)=>'<div><b>'+(i?DN[(new Date().getDay()+i)%7].toUpperCase():'HOY')+'</b><span>'+Math.round(d.max)+'°/'+Math.round(d.min)+'°</span><small>'+(d.rain>=40?'lluvia '+d.rain+'%':wc(d.code))+'</small></div>').join('')+'</div>'}
 
+ if(AV&&AV.mail){(AV.mail.alertas||[]).slice(0,2).forEach(a=>{h+='<div class="r"><span class="n dn">'+esc(a)+'</span></div>'});h+='<div class="r"><span class="n">Mail importante sin leer</span><b>'+AV.mail.importantes+'</b></div>'}
  if(DL.length)h+='<div class="r"><span class="n">Steam bajando</span><b>'+esc(DL[0].name.slice(0,14))+' '+DL[0].pct+'%</b></div>';
  if(ST){const pc=v=>Math.min(100,Math.max(0,Math.round(v))),m=(l,v,txt,p)=>'<div class="mt"><b>'+l+'</b><span class="'+(p>=85?'dn':'')+'">'+txt+'</span><i><u style="width:'+pc(p)+'%"></u></i></div>';h+='<div class="msys">'+m('CPU',0,ST.cpu+'%',+ST.cpu)+m('RAM',0,ST.ramUsed+'/'+Math.round(ST.ramTotal)+' GB',100*ST.ramUsed/ST.ramTotal)+m('GPU',0,Math.round(ST.gpuUtil)+'% '+Math.round(ST.gpuTemp)+'°',+ST.gpuUtil)+m('DISCO',0,Math.round(ST.diskFreeGB)+' GB libres',100-100*ST.diskFreeGB/ST.diskTotalGB)+'</div>'}
  $('hoy').innerHTML=h}

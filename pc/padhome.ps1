@@ -22,7 +22,7 @@ public static class Pad {
 }
 '@
 $last = [datetime]::MinValue; $holdStart = $null; $guideWas = $false
-$kc = [IntPtr]::Zero; $kt = [datetime]::MinValue; $prevB = 0; $wc = New-Object Net.WebClient
+$dbgT = [datetime]::MinValue; $kc = [IntPtr]::Zero; $kt = [datetime]::MinValue; $prevB = 0; $wc = New-Object Net.WebClient
 $map = @{ 1='up'; 2='down'; 4='left'; 8='right'; 16='start'; 32='back'; 256='lb'; 512='rb'; 4096='ok'; 8192='b'; 16384='x'; 32768='y' }
 while ($true) {
   $b = [uint16]0
@@ -42,9 +42,10 @@ while ($true) {
   $front = ($kc -ne [IntPtr]::Zero) -and ([Pad]::GetForegroundWindow() -eq $kc)
   if ($front -and -not $combo) {
     $new = $b2 -band (-bnot $prevB)
-    foreach ($k in $map.Keys) { if ($new -band $k) { try { [void]$wc.DownloadString('http://127.0.0.1:8777/inbox/push?t=key:' + $map[$k]) } catch {} } }
+    foreach ($k in $map.Keys) { if ($new -band $k) { try { [void]$wc.DownloadString('http://127.0.0.1:8777/inbox/push?t=key:' + $map[$k]); Add-Content "$PSScriptRoot\data\padhome.log" ((Get-Date -f HH:mm:ss) + ' push ' + $map[$k]) } catch { Add-Content "$PSScriptRoot\data\padhome.err" ((Get-Date -f HH:mm:ss) + ' ' + $_.Exception.Message) } } }
   }
   $prevB = $b2
+  if (((Get-Date) - $dbgT).TotalSeconds -gt 5) { $dbgT = Get-Date; Add-Content "$PSScriptRoot\data\padhome.log" ((Get-Date -f HH:mm:ss) + ' idx=' + $idx + ' b=' + $b + ' front=' + $front + ' kc=' + $kc) }
   if ($fire -and ((Get-Date) - $last).TotalMilliseconds -gt 1500) {
     $last = Get-Date
     $k = [Pad]::Kiosk()

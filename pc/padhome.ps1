@@ -24,6 +24,7 @@ public static class Pad {
   [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h,out RC r);
   [DllImport("user32.dll")] static extern int GetSystemMetrics(int i);
   public static bool Full(IntPtr h){ RC r; if(!GetWindowRect(h,out r)) return false; return r.L<=0 && r.T<=0 && r.R>=GetSystemMetrics(0) && r.B>=GetSystemMetrics(1); }
+  public static string Title(IntPtr h){ var t=new StringBuilder(256); GetWindowText(h,t,256); return t.ToString(); }
   delegate bool EP(IntPtr h,IntPtr l);
   public static IntPtr Kiosk(){ IntPtr f=IntPtr.Zero; EnumWindows((h,l)=>{ if(IsWindowVisible(h)||true){ var t=new StringBuilder(256); GetWindowText(h,t,256); if(t.ToString().StartsWith("NEON CONSOLE")){ f=h; return false; } } return true; },IntPtr.Zero); return f; }
 }
@@ -63,7 +64,7 @@ while ($true) {
       try {
         $fg = [Pad]::GetForegroundWindow(); $pr = Get-Process -Id ([Pad]::Pid($fg)) -ErrorAction Stop; $pn = $pr.ProcessName
         $pp = ''; try { $pp = $pr.Path } catch {}
-        $isGame = ($pp -match '\\steamapps\\common\\|\\Juegos\\') -or ($mouseNever -contains $pn) -or (([Pad]::Full($fg)) -and ($mouseApps -notcontains $pn))
+        $ti = [Pad]::Title($fg); $isGame = ($ti -match 'La Horda|Vortex|Bosta C|FreeBird|Crystal Wars|Warframe|Left 4 Dead|Xbox Cloud|GeForce NOW|xCloud|Diablo|League of Legends|Steam Big Picture|Modo Big Picture') -or ($pp -match '\\steamapps\\common\\|\\Juegos\\') -or ($mouseNever -contains $pn) -or (([Pad]::Full($fg)) -and ($mouseApps -notcontains $pn))
         $mouseOn = ($fg -ne [IntPtr]::Zero) -and (-not $isGame)
       } catch {}    }
     if ($mouseOn -ne $mouseWas) { $mouseWas = $mouseOn; Add-Content "$PSScriptRoot\data\padhome.log" ((Get-Date -f HH:mm:ss) + ' mouse=' + $mouseOn + ' app=' + $pn) }

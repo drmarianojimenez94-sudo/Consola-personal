@@ -20,6 +20,10 @@ public static class Pad {
   [DllImport("user32.dll")] public static extern void mouse_event(uint f,int dx,int dy,int d,UIntPtr e);
   [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h,out uint pid);
   public static uint Pid(IntPtr h){ uint p; GetWindowThreadProcessId(h,out p); return p; }
+  [StructLayout(LayoutKind.Sequential)] public struct RC { public int L,T,R,B; }
+  [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr h,out RC r);
+  [DllImport("user32.dll")] static extern int GetSystemMetrics(int i);
+  public static bool Full(IntPtr h){ RC r; if(!GetWindowRect(h,out r)) return false; return r.L<=0 && r.T<=0 && r.R>=GetSystemMetrics(0) && r.B>=GetSystemMetrics(1); }
   delegate bool EP(IntPtr h,IntPtr l);
   public static IntPtr Kiosk(){ IntPtr f=IntPtr.Zero; EnumWindows((h,l)=>{ if(IsWindowVisible(h)||true){ var t=new StringBuilder(256); GetWindowText(h,t,256); if(t.ToString().StartsWith("NEON CONSOLE")){ f=h; return false; } } return true; },IntPtr.Zero); return f; }
 }
@@ -30,7 +34,7 @@ $dbgT = [datetime]::MinValue; $kc = [IntPtr]::Zero; $kt = [datetime]::MinValue; 
 # Solo se activa cuando al frente hay un navegador/reproductor/escritorio (NO en juegos ni en el panel).
 # L3+R3 (apretar ambas palancas) lo apaga/enciende a mano.
 $mouseApps = 'msedge','chrome','firefox','brave','opera','vivaldi','explorer','vlc','mpc-hc64','mpc-hc','potplayer64','SumatraPDF','WINWORD','EXCEL','POWERPNT','Krita','audacity','obs64','Spotify','ApplicationFrameHost','Netflix','HBOMax','DisneyPlus','Plex','Kodi','Taskmgr'
-$mouseOff = $false; $mouseOn = $false; $mpT = [datetime]::MinValue; $aDown = $false; $bDown = $false; $l3Was = $false; $mouseCnt = 0
+$mouseNever = 'steam','steamwebhelper','Battle.net','Warframe.x64','Warframe','left4dead2','hl2','LeagueClient','LeagueClientUx','Diablo IV','RiotClientServices','Playnite.FullscreenApp','GameBar','XboxPcApp';$mouseWas = $false;$mouseOff = $false; $mouseOn = $false; $mpT = [datetime]::MinValue; $aDown = $false; $bDown = $false; $l3Was = $false; $mouseCnt = 0
 $map = @{ 1='up'; 2='down'; 4='left'; 8='right'; 16='start'; 32='back'; 256='lb'; 512='rb'; 4096='ok'; 8192='b'; 16384='x'; 32768='y' }
 while ($true) {
   $b = [uint16]0
@@ -55,9 +59,14 @@ while ($true) {
   # ---- modo mouse ----
   if (((Get-Date) - $mpT).TotalMilliseconds -gt 300) {
     $mpT = Get-Date; $mouseOn = $false
-    if (-not $mouseOff -and -not $front) {
-      try { $fg = [Pad]::GetForegroundWindow(); $pn = (Get-Process -Id ([Pad]::Pid($fg)) -ErrorAction Stop).ProcessName; $mouseOn = ($mouseApps -contains $pn) } catch {}
-    }
+    if (-not $mouseOff -and -not $front -and $mouseOn -eq $false) {
+      try {
+        $fg = [Pad]::GetForegroundWindow(); $pr = Get-Process -Id ([Pad]::Pid($fg)) -ErrorAction Stop; $pn = $pr.ProcessName
+        $pp = ''; try { $pp = $pr.Path } catch {}
+        $isGame = ($pp -match '\\steamapps\\common\\|\\Juegos\\') -or ($mouseNever -contains $pn) -or (([Pad]::Full($fg)) -and ($mouseApps -notcontains $pn))
+        $mouseOn = ($fg -ne [IntPtr]::Zero) -and (-not $isGame)
+      } catch {}    }
+    if ($mouseOn -ne $mouseWas) { $mouseWas = $mouseOn; Add-Content "$PSScriptRoot\data\padhome.log" ((Get-Date -f HH:mm:ss) + ' mouse=' + $mouseOn + ' app=' + $pn) }
     if (-not $mouseOn) { if ($aDown) { [Pad]::mouse_event(4,0,0,0,[UIntPtr]::Zero); $aDown = $false }; if ($bDown) { [Pad]::mouse_event(16,0,0,0,[UIntPtr]::Zero); $bDown = $false } }
   }
   $l3r3 = (($b -band 0xC0) -eq 0xC0)
